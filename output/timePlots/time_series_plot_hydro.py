@@ -46,7 +46,7 @@ from numpy import*
 import matplotlib .pyplot as plt
 import time
 
-plt.ion()
+#plt.ion()
 plt.rcParams['xtick.major.size'] = 9
 
 plt.rcParams['xtick.major.width'] = 1
@@ -75,67 +75,39 @@ Re = data[:,1]
 Div = data[:,2]
 dt = data[:,3]
 
+plt.figure(1, figsize=(20, 16))  
 #Define Figure and subplots=========================================
-fig = plt.figure(1)
+fig = plt.figure(1, figsize=(20, 16))
 f_ax1 = fig.add_subplot(2,2,1)
 f_ax2 = fig.add_subplot(2,2,2)
 f_ax3 = fig.add_subplot(2,2,3)
 f_ax4 = fig.add_subplot(2,2,4)
-fig.suptitle(r"$Time\:Series\:Plots$" ,fontsize=30)
+fig.suptitle(r"$Time\:Series\:Plots$", fontsize=30)
+
+# Sub-Plot 1
+f_ax1.plot(t, dt, "b", lw=2.0, label='dt')
+f_ax1.set_xlabel(r"$t$", fontsize=20)
+f_ax1.set_ylabel(r"$dt$", fontsize=20)
+f_ax1.legend(fontsize=15)
+
+# Sub-Plot 2
+f_ax2.plot(t, Re, "b", lw=2.0, label='Re')
+f_ax2.set_xlabel("$t$", fontsize=20)
+f_ax2.set_ylabel("$Re$", fontsize=20)
+f_ax2.legend(fontsize=15)
+
+# Sub-Plot 3
+f_ax3.plot(t, Div, "b", lw=2.0, label='Div')
+f_ax3.set_xlabel("$t$", fontsize=20)
+f_ax3.set_ylabel(r" $\nabla \cdot u$", fontsize=20)
+f_ax3.legend(fontsize=15)
+
+plt.tight_layout()
+plt.savefig("time_series_plot_hydro.png")
+print("Saved to: time_series_plot_hydro.png")
+plt.close()
 
 
-#Sub-Plot 1=============================================================
-f_ax1.plot(t, dt, "b", lw=2.0)
-    
-f_ax1.set_xlabel(r"$t$", fontsize = 20)
-f_ax1.set_ylabel(r"$dt$", fontsize = 20)
-f_ax1.legend(loc = 0,fontsize=15)
-
-#Sub-Plot 2=============================================================
-f_ax2.plot(t, Re, "b", lw=2.0)
-
-f_ax2.set_xlabel("$t$", fontsize = 20)
-f_ax2.set_ylabel("$Re$", fontsize = 20)
-f_ax2.legend(loc = 0,fontsize=15)
-
-#Sub-Plot 3=============================================================
-f_ax3.plot(t, Div, "b", lw=2.0)
-
-f_ax3.set_xlabel("$t$", fontsize = 20)
-f_ax3.set_ylabel(r" $\nabla \cdot u$", fontsize = 20)
-f_ax3.legend(loc = 0,fontsize=15)
 
 
-#fig.tight_layout()
-figManager = plt.get_current_fig_manager()
-figManager.resize(*figManager.window.maxsize())
-plt.show()
-
-#LOOP===================================================================
-while (1) :
-    #Load Data==========================================================
-    data = np.loadtxt('../TimeSeries.dat',comments='#')
-    t = data[:,0]
-    Re = data[:,1]
-    Div = data[:,2]
-    dt = data[:,3]
-
-    #Define Figure and subplots=========================================
-    fig = plt.figure(1)
-    f_ax1 = fig.add_subplot(2,2,1)
-    f_ax2 = fig.add_subplot(2,2,2)
-    f_ax3 = fig.add_subplot(2,2,3)
-    f_ax4 = fig.add_subplot(2,2,4)
-    
-    #Sub-Plot 1=============================================================
-    f_ax1.plot(t, dt, "b", lw=2.0)
-    
-    #Sub-Plot 2=============================================================
-    f_ax2.plot(t, Re, "b", lw=2.0)
-
-    #Sub-Plot 3=============================================================
-    f_ax3.plot(t, Div, "b", lw=2.0)
-    
-    plt.pause(2)
-    plt.show()
 
