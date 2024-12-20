@@ -38,10 +38,9 @@ def plotStreamline(fName, input_dir , base_name="streamline"):
     stream_obj = plt.streamplot(X, Z, U, W, density=1)
 
     # Get unique filename with timestamp
- 
     unique_filename = os.path.join(input_dir, os.path.basename(fName).replace('.h5', '_waterFlow.png'))
     # Save plot and close figure
-    plt.savefig(unique_filename)
+    plt.savefig(unique_filename, dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Saved image to {unique_filename}.")
 
@@ -92,7 +91,7 @@ def main(input_dir):
  
 
                 # Generate an image for 'P'
-                plt.imshow(P, cmap='viridis')
+                plt.imshow(P, cmap='flag')
                 plt.colorbar(label='P')
 
                 plt.title(f"Variable 'P' from {os.path.basename(h5_file)}")
@@ -122,7 +121,7 @@ def main(input_dir):
 
                 # Generate an image for velocity magnitude
 
-                plt.imshow(velocity_magnitude, cmap='plasma')
+                plt.imshow(velocity_magnitude, cmap='prism')
                 plt.colorbar(label='Velocity Magnitude')
                 plt.title(f"Velocity Magnitude from {os.path.basename(h5_file)}")
 
