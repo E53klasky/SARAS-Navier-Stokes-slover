@@ -103,7 +103,7 @@
     "Integration Scheme": 1
 
     # Tolerance used in iterative method (if Implicit Crank-Nicholson scheme is chosen above)
-    "Solve Tolerance": 1.0e-5
+    "Solve Tolerance": 1.0e-4
 
     # Set below flag to true if restarting from a solution file
     # If flag is true, solver will read the last written solution file in output directory for restart
@@ -114,7 +114,7 @@
     # If above flag is true, then set the value of Courant number below
     "Courant Number": 0.01
     "Time-Step": 0.001
-    "Final Time": 3
+    "Final Time": 0.75
 
     # Number of iterations to display output to standard I/O
     "I/O Count": 1
@@ -152,7 +152,7 @@
     "V-Cycle Count": 2
 
     # Tolerance used in iterative method when solving at coarsest level
-    "Solve Tolerance": 1.0e-5
+    "Solve Tolerance": 1.0e-4
 
     # Iterative method to be used for smoothing
     # 0 = Jacobi iteration
@@ -160,9 +160,9 @@
     "Smoothing Method": 1
 
     # Number of smoothing iterations to be performed after restriction operations
-    "Pre-Smoothing Count": 4
+    "Pre-Smoothing Count": 2
     # Number of smoothing iterations to be performed after prolongation operations
-    "Post-Smoothing Count": 4
+    "Post-Smoothing Count": 2
 
     # Type of residual to be computed at end of each V-Cycle of the multigrid method
     # This value can be set as below:
