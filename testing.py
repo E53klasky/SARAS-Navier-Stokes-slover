@@ -91,7 +91,7 @@ def main(input_dir):
  
 
                 # Generate an image for 'P'
-                plt.imshow(P, cmap='flag')
+                plt.imshow(P, cmap='cool')
                 plt.colorbar(label='P')
 
                 plt.title(f"Variable 'P' from {os.path.basename(h5_file)}")
@@ -121,7 +121,7 @@ def main(input_dir):
 
                 # Generate an image for velocity magnitude
 
-                plt.imshow(velocity_magnitude, cmap='prism')
+                plt.imshow(velocity_magnitude, cmap='gist_ncar')
                 plt.colorbar(label='Velocity Magnitude')
                 plt.title(f"Velocity Magnitude from {os.path.basename(h5_file)}")
 

@@ -1,0 +1,21 @@
+#include <iostream>
+#include <thread>
+#include <sched.h>
+#include <unistd.h>
+
+int main() {
+    // Get the total number of CPU cores
+    unsigned int total_cores = std::thread::hardware_concurrency();
+    std::cout << "Total CPU cores: " << total_cores << std::endl;
+
+    // Get the number of usable CPU cores
+    cpu_set_t cpu_set;
+    if (sched_getaffinity(0, sizeof(cpu_set), &cpu_set) == 0) {
+        unsigned int usable_cores = CPU_COUNT(&cpu_set);
+        std::cout << "Usable CPU cores: " << usable_cores << std::endl;
+    } else {
+        std::cerr << "Failed to get CPU affinity!" << std::endl;
+    }
+
+    return 0;
+}
