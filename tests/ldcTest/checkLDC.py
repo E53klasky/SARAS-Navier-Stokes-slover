@@ -56,6 +56,7 @@ import numpy as np
 import h5py as hp
 import yaml as yl
 
+plt.rcParams['font.family'] = 'DejaVu Sans'
 # Pyplot-specific directives
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["mathtext.fontset"] = 'cm'
@@ -220,5 +221,5 @@ if __name__ == "__main__":
 
     plotProfile()
 
-    #checkTolerance()
+    checkTolerance()
 

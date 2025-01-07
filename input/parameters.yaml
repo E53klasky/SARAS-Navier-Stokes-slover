@@ -81,15 +81,15 @@
     # Grid sizes: 2 3 5 9 17 33 65 129 257 513 1025 2049 4097 8193 16385]
     # Size index: 0 1 2 3  4  5  6  7   8   9   10   11   12   13    14
     "X Index": 6
-    "Y Index": 6
+    "Y Index": 0
     "Z Index": 6
 
 
 # Parellelization parameters
 "Parallel":
     "Number of OMP threads": 1
-    "X Number of Procs": 2
-    "Y Number of Procs": 2
+    "X Number of Procs": 4
+    "Y Number of Procs": 1
 
 
 # Solver parameters
@@ -105,7 +105,7 @@
     "Integration Scheme": 1
 
     # Tolerance used in iterative method (if Implicit Crank-Nicholson scheme is chosen above)
-    "Solve Tolerance": 1.0e-6
+    "Solve Tolerance": 1.0e-5
 
     # Set below flag to true if restarting from a solution file
     # If flag is true, solver will read the last written solution file in output directory for restart
@@ -154,7 +154,7 @@
     "V-Cycle Count": 5
 
     # Tolerance used in iterative method when solving at coarsest level
-    "Solve Tolerance": 1.0e-6
+    "Solve Tolerance": 1.0e-5
 
     # Iterative method to be used for smoothing
     # 0 = Jacobi iteration
