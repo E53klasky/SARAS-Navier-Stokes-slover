@@ -1,6 +1,7 @@
 <<<<<<< HEAD
 THERE SEEMS TO BE A PROBLEM WHEN TRYING TO INSTALL SOME OF THE SOFTWARE ON MAC OS
 LINUX UBUNTU SEEMS TO WORK FINE. I DO NOT KNOW ABOUT WINDOWS
+strange but works try the test for some reason that works
 # Saras - Finite difference solver
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
