@@ -56,7 +56,7 @@
 
 class writer {
     public:
-        writer(const grid &mesh, std::vector<field> &wFields);
+        writer(const grid &mesh, std::vector<field> &wFields, std::string outDir);
 
         void writeTarang(real time);
         void writeSolution(real time);
@@ -65,6 +65,7 @@ class writer {
         ~writer();
 
     private:
+        std::string outputDir = "output";
         const grid &mesh;
 
         std::vector<field> &wFields;

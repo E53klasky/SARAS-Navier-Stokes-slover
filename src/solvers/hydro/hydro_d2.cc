@@ -128,7 +128,7 @@ void hydro_d2::solvePDE() {
     writeFields.push_back(P.F);
 
     // Initialize writer object
-    writer dataWriter(mesh, writeFields);
+    writer dataWriter(mesh, writeFields,  inputParams.OutputDir);
 
     // Initialize probes
     if (inputParams.readProbes) {

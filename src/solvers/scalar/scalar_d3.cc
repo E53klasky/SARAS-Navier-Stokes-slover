@@ -132,7 +132,7 @@ void scalar_d3::solvePDE() {
     writeFields.push_back(T.F);
 
     // Initialize writer object
-    writer dataWriter(mesh, writeFields);
+    writer dataWriter(mesh, writeFields, inputParams.OutputDir);
 
     // Initialize probes
     if (inputParams.readProbes) {

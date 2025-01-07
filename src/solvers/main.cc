@@ -46,14 +46,22 @@
 #include "parser.h"
 #include "grid.h"
 
-int main() {
+int main(int argc, char** argv)
+{
+    if (argc != 3)
+    {
+        std::cerr<<"Error.\n   Usage: "<<argv[0]<<" parameterFileName outputDir"<<std::endl;
+        return -1;
+    }
+
     struct timeval runStart, runEnd;
 
     // INITIALIZE MPI
     MPI_Init(NULL, NULL);
 
     // ALL PROCESSES READ THE INPUT PARAMETERS
-    parser inputParams;
+    std::string paramFileName(argv[1]), outputDir(argv[2]);
+    parser inputParams(paramFileName, outputDir);
 
     // INITIALIZE PARALLELIZATION DATA
     parallel mpi(inputParams);

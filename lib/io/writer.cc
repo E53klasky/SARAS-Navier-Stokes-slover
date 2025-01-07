@@ -53,7 +53,9 @@
  *
  ********************************************************************************************************************************************
  */
-writer::writer(const grid &mesh, std::vector<field> &wFields): mesh(mesh), wFields(wFields) {
+writer::writer(const grid &mesh, std::vector<field> &wFields, std::string outDir)
+  : mesh(mesh), wFields(wFields), outputDir(outDir)
+{
     /** Initialize the common global and local limits for file writing */
     initLimits();
 
@@ -271,7 +273,7 @@ void writer::writeTarang(real time) {
     // Generate the foldername corresponding to the time
     folderName = new char[100];
     constFile.str(std::string());
-    constFile << "output/real_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time;
+    constFile << this->outputDir<<"/real_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time;
     strcpy(folderName, constFile.str().c_str());
 
     if (mesh.rankData.rank == 0) {
@@ -389,7 +391,7 @@ void writer::writeSolution(real time) {
     // Generate the filename corresponding to the solution file
     fileName = new char[100];
     constFile.str(std::string());
-    constFile << "output/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
+    constFile << this->outputDir<<"/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
     strcpy(fileName, constFile.str().c_str());
 
     // First create a file handle with the path to the output file
@@ -464,7 +466,8 @@ void writer::writeRestart(real time) {
     H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
 
     // First create a file handle with the path to the output file
-    fileHandle = H5Fcreate("output/restartFile.h5", H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+    std::string _fname = this->outputDir + "/restartFile.h5";
+    fileHandle = H5Fcreate(_fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
 
     // Close the property list for later reuse
     H5Pclose(plist_id);
