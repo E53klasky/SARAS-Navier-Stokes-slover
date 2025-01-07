@@ -1,32 +1,48 @@
-cmake_minimum_required(VERSION 3.5)
-project(saras C CXX)
+#############################################################################################################################################
+ # Saras
+ # 
+ # Copyright (C) 2019, Mahendra K. Verma
+ #
+ # All rights reserved.
+ # 
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are met:
+ #     1. Redistributions of source code must retain the above copyright
+ #        notice, this list of conditions and the following disclaimer.
+ #     2. Redistributions in binary form must reproduce the above copyright
+ #        notice, this list of conditions and the following disclaimer in the
+ #        documentation and/or other materials provided with the distribution.
+ #     3. Neither the name of the copyright holder nor the
+ #        names of its contributors may be used to endorse or promote products
+ #        derived from this software without specific prior written permission.
+ # 
+ # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ # ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ # (INCLUDING, BUT NOT LIMITED TO, PROCUR-EMENT OF SUBSTITUTE GOODS OR SERVICES;
+ # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #
+ ############################################################################################################################################
+ ##
+ ##! \file CMakeLists.txt
+ #
+ #   \brief Root level CMakeLists file.
+ #
+ #   \author Roshan Samuel
+ #   \date Nov 2019
+ #   \copyright New BSD License
+ #
+ ############################################################################################################################################
+ ##
 
-# Find required packages
-find_package(HDF5 REQUIRED)
-include_directories(${HDF5_INCLUDE_DIRS})
-# Prevent in-source builds
-# Check if BLITZ_INCLUDE_DIR and BLITZ_LIBRARY are defined
-if (NOT DEFINED BLITZ_INCLUDE_DIR)
-    set(BLITZ_INCLUDE_DIR "/usr/include/blitz")
-endif()
-
-if (NOT DEFINED BLITZ_LIBRARY)
-    set(BLITZ_LIBRARY "/usr/lib/x86_64-linux-gnu/libblitz.a")
-endif()
-
-# Add this line before the rest of the configuration
-find_package(MPI REQUIRED)
-
-# If needed, you can manually specify the paths:
-# set(MPI_INCLUDE_DIR "/usr/lib/x86_64-linux-gnu/openmpi/include")
-# set(MPI_LIBRARY "/usr/lib/x86_64-linux-gnu/openmpi/lib")
-
-
-# Include the Blitz++ headers
-include_directories(${BLITZ_INCLUDE_DIR})
-
-# Link the Blitz++ library
-link_directories(${BLITZ_LIBRARY})
+# Cmake setup
+cmake_minimum_required (VERSION 2.8.3)
+project (saras)
 
 if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
     MESSAGE(FATAL_ERROR "\nERROR! ${PROJECT_NAME} does not support in-source builds!\n"
@@ -43,102 +59,118 @@ if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
             "        $ mkdir MY_BUILD\n"
             "        $ cd MY_BUILD\n"
             "        $ cmake [OPTIONS] ..\n")
-endif()
+endif ()
 
-# Set directories
-set(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(HEADER_DIR ${PARENT_DIR}/lib)
+# Add this line before the rest of the configuration
+find_package(MPI REQUIRED)
 
-# Output directory information
-message(STATUS "The parent directory is ${PARENT_DIR}")
-message(STATUS "Install folder is ${CMAKE_CURRENT_BINARY_DIR}")
-message(STATUS "All headers are in ${HEADER_DIR}")
-message(STATUS "Using Blitz library: ${BLITZ_LIBRARY}")
+# If needed, you can manually specify the paths:
+# set(MPI_INCLUDE_DIR "/usr/lib/x86_64-linux-gnu/openmpi/include")
+# set(MPI_LIBRARY "/usr/lib/x86_64-linux-gnu/openmpi/lib")
 
-# Include directories
-include_directories(
-    ${HEADER_DIR}/parallel
-    ${HEADER_DIR}/boundary
-    ${HEADER_DIR}/initial
-    ${HEADER_DIR}/poisson
-    ${HEADER_DIR}/force
-    ${HEADER_DIR}/field
-    ${HEADER_DIR}/grid
-    ${HEADER_DIR}/io
-)
 
-# Find and configure YAML-cpp
+
+set (PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set (HEADER_DIR ${PARENT_DIR}/lib)
+
+message (STATUS "The parent directory is ${PARENT_DIR}")
+message (STATUS "Install folder is ${CMAKE_CURRENT_BINARY_DIR}")
+message (STATUS "All headers are in ${HEADER_DIR}")
+
+include_directories (${HEADER_DIR}/parallel
+                     ${HEADER_DIR}/boundary
+                     ${HEADER_DIR}/initial
+                     ${HEADER_DIR}/poisson
+                     ${HEADER_DIR}/force
+                     ${HEADER_DIR}/field
+                     ${HEADER_DIR}/grid
+                     ${HEADER_DIR}/io)
+
+# Search for yaml-cpp library
 find_package(yaml-cpp)
-if(yaml-cpp_FOUND)
-    if(yaml-cpp_VERSION GREATER 0.3)
-        message(STATUS "Found YAML Cpp ${yaml-cpp_VERSION}")
-    else()
-        message(STATUS "Found YAML Cpp ${yaml-cpp_VERSION}. Using deprecated YAML parsing commands.")
+if (yaml-cpp_FOUND)
+    if (yaml-cpp_VERSION GREATER 0.3)
+        message (STATUS "Found YAML Cpp ${yaml-cpp_VERSION}")
+    else ()
+        message (STATUS "Found YAML Cpp ${yaml-cpp_VERSION}. Using deprecated YAML parsing commands.")
         add_definitions(-DYAML_LEGACY)
-    endif()
-else()
+    endif ()
+else ()
     find_library(YAML_FOUND yaml-cpp libyaml-cpp)
-    if(YAML_FOUND)
-        message(STATUS "Found YAML Cpp but could not determine version. You may have to configure with DYAML_LEGACY")
-    else()
-        message(WARNING "Could not determine YAML-Cpp version. You may have to configure with DYAML_LEGACY")
-    endif()
-endif()
+    if (YAML_FOUND)
+        message (STATUS "Found YAML Cpp but could not determine version. You may have to configure with DYAML_LEGACY")
+    else ()
+        message (WARNING "Could not determine YAML-Cpp version. You may have to configure with DYAML_LEGACY")
+    endif ()
+endif ()
 
-# Configure YAML legacy support if needed
-if(YAML_LEGACY)
-    message(STATUS "Compiling Saras for older YAML Cpp library")
+# Add compiler flag to use older yaml-cpp commands
+if (YAML_LEGACY)
+    message (STATUS "Compiling Saras for older YAML Cpp library")
     add_definitions(-DYAML_LEGACY)
 endif()
 
-# Configure dimensional settings
-if(PLANAR)
-    message(STATUS "Compiling Saras for 2D simulations")
+# Add compiler flag for 2D/3D runs as requested by user while running cmake
+if (PLANAR)
+    message (STATUS "Compiling Saras for 2D simulations")
     add_definitions(-DPLANAR)
-else()
-    message(STATUS "Compiling Saras for 3D simulations")
-endif()
+else ()
+    message (STATUS "Compiling Saras for 3D simulations")
+endif ()
 
-# Configure precision settings
-if(REAL_SINGLE)
-    message(STATUS "Compiling Saras to solve with single precision calculations")
+# Add compiler flag for using single precision calculations
+if (REAL_SINGLE)
+    message (STATUS "Compiling Saras to solve with single precision calculations")
     add_definitions(-DREAL_SINGLE)
-else()
-    message(STATUS "Compiling Saras to solve with double precision calculations")
+else ()
+    message (STATUS "Compiling Saras to solve with double precision calculations")
     add_definitions(-DREAL_DOUBLE)
-endif()
+endif ()
 
-# Configure test settings
-if(TEST_RUN)
-    message(STATUS "Compiling Saras for running unit tests")
+# Add compiler flag for test runs as requested by user while running cmake
+if (TEST_RUN)
+    message (STATUS "Compiling Saras for running unit tests")
     add_definitions(-DTEST_RUN)
-endif()
+endif ()
 
-if(TIME_RUN)
-    message(STATUS "Compiling Saras with additional timing calls")
+# Add compiler flag for timing runs for scaling if requested by user
+if (TIME_RUN)
+    message (STATUS "Compiling Saras with additional timing calls")
     add_definitions(-DTIME_RUN)
-endif()
+endif ()
 
-if(TEST_POISSON)
-    message(STATUS "Compiling Saras to test the Poisson library")
+# Add compiler flag for testing the Poisson library
+if (TEST_POISSON)
+    message (STATUS "Compiling Saras to test the Poisson library")
     add_definitions(-DTEST_POISSON)
-endif()
+endif ()
 
-# Set compiler flags
-set(CMAKE_CXX_FLAGS "-Wall -Ofast")
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -g -DBZ_DEBUG")
+# Set compiler flags for normal and debug runs
+set (CMAKE_CXX_FLAGS "-Wall -Ofast")
+set (CMAKE_CXX_FLAGS_DEBUG "-Wall -g -DBZ_DEBUG")
 
-# Add subdirectories
-add_subdirectory(lib)
-add_subdirectory(src)
+add_subdirectory (lib)
+add_subdirectory (src)
 
-# Clear cache variables
-unset(PLANAR CACHE)
-unset(TEST_RUN CACHE)
-unset(TIME_RUN CACHE)
-unset(REAL_DOUBLE CACHE)
-unset(REAL_SINGLE CACHE)
-unset(TEST_POISSON CACHE)
-unset(yaml-cpp_FOUND CACHE)
-unset(yaml-cpp_VERSION CACHE)
-unset(YAML_LEGACY CACHE)
+# Remove the PLANAR variable from cache to force user to manually set the PLANAR flag each time a 2D run is needed
+unset (PLANAR CACHE)
+
+# Remove the TEST_RUN variable from cache to force user to manually set the TEST_RUN flag each time unit-tests must be performed
+unset (TEST_RUN CACHE)
+
+# Remove the TIME_RUN variable from cache to force user to manually set the TIME_RUN flag each time scaling run must be performed
+unset (TIME_RUN CACHE)
+
+# Remove the REAL_DOUBLE variable from cache to force user to manually set the precision each time the solver is compiled
+unset (REAL_DOUBLE CACHE)
+
+# Remove the REAL_SINGLE variable from cache to force user to manually set the precision each time the solver is compiled
+unset (REAL_SINGLE CACHE)
+
+# Remove the TEST_POISSON variable from cache to force user to manually set the flag for testing Poisson solver
+unset (TEST_POISSON CACHE)
+
+# Remove variables associated with finding yaml-cpp version from cache
+unset (yaml-cpp_FOUND CACHE)
+unset (yaml-cpp_VERSION CACHE)
+unset (YAML_LEGACY CACHE)
