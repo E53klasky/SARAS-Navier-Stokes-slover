@@ -62,6 +62,9 @@
 
 class parser {
     public:
+        std::string InputFileName;
+        std::string OutputDir;
+
         int ioCnt;
         int rbcType;
         int nThreads;
@@ -103,7 +106,7 @@ class parser {
 
         std::vector<blitz::TinyVector<int, 3> > probesList;
 
-        parser();
+        parser(const std::string& paramFile, const std::string& outDir);
 
         void writeParams();
 

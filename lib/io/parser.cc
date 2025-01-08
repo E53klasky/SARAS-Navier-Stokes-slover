@@ -44,7 +44,10 @@
 #include "parser.h"
 #include "mpi.h"
 
-parser::parser() {
+parser::parser(const std::string& paramFile, const std::string& outDir)
+: InputFileName(paramFile)
+, OutputDir(outDir)
+{
     parseYAML();
     checkData();
 
@@ -69,7 +72,8 @@ parser::parser() {
 void parser::parseYAML() {
     std::ifstream inFile;
 
-    inFile.open("input/parameters.yaml", std::ifstream::in);
+    //inFile.open(paramFile"input/parameters.yaml", std::ifstream::in);
+    inFile.open(this->InputFileName, std::ifstream::in);
 
 #ifdef YAML_LEGACY
     YAML::Node yamlNode;

@@ -63,6 +63,7 @@ endif ()
 
 set (PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set (HEADER_DIR ${PARENT_DIR}/lib)
+# find_package(ADIOS2 REQUIRED) # please work
 
 message (STATUS "The parent directory is ${PARENT_DIR}")
 message (STATUS "Install folder is ${CMAKE_CURRENT_BINARY_DIR}")

@@ -56,6 +56,10 @@ class initial {
         virtual void initializeField(vfield &uField);
         virtual void initializeField(vfield &uField, sfield &tField);
 
+        std::string outputDir = "output";
+        std::string inputParamFile = "input/parameters.yaml";
+
+
     protected:
         const grid &mesh;
 };
