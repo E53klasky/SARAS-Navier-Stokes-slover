@@ -1,10 +1,10 @@
 /********************************************************************************************************************************************
  * Saras
- * 
+ *
  * Copyright (C) 2019, Mahendra K. Verma
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     1. Redistributions of source code must retain the above copyright
@@ -15,7 +15,7 @@
  *     3. Neither the name of the copyright holder nor the
  *        names of its contributors may be used to endorse or promote products
  *        derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -49,14 +49,16 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 #include "field.h"
 #include "grid.h"
 #include "hdf5.h"
+#include "adios2.h"
 
 class writer {
-    public:
-        writer(const grid &mesh, std::vector<field> &wFields, std::string outDir);
+public:
+        writer(const grid& mesh , std::vector<field>& wFields , std::string outDir);
 
         void writeTarang(real time);
         void writeSolution(real time);
@@ -64,28 +66,28 @@ class writer {
 
         ~writer();
 
-    private:
+private:
         std::string outputDir = "output";
-        const grid &mesh;
-
-        std::vector<field> &wFields;
+        const grid& mesh;
+        adios2::Engine bpWriter; 
+        std::vector<field>& wFields;
 
 #ifdef PLANAR
-        blitz::Array<real, 2> fieldData;
+        blitz::Array<real , 2> fieldData;
 #else
-        blitz::Array<real, 3> fieldData;
+        blitz::Array<real , 3> fieldData;
 #endif
 
-        std::vector<hid_t> sourceDSpace, targetDSpace;
+        std::vector<hid_t> sourceDSpace , targetDSpace;
 
-        std::vector< blitz::TinyVector<int, 3> > localSize;
+        std::vector< blitz::TinyVector<int , 3> > localSize;
 
         void outputCheck();
 
         void initLimits();
 
-        void copyData(field &outField);
-        void interpolateData(field &outField);
+        void copyData(field& outField);
+        void interpolateData(field& outField);
 };
 
 /**

@@ -1,47 +1,5 @@
-#############################################################################################################################################
- # Saras
- # 
- # Copyright (C) 2019, Mahendra K. Verma
- #
- # All rights reserved.
- # 
- # Redistribution and use in source and binary forms, with or without
- # modification, are permitted provided that the following conditions are met:
- #     1. Redistributions of source code must retain the above copyright
- #        notice, this list of conditions and the following disclaimer.
- #     2. Redistributions in binary form must reproduce the above copyright
- #        notice, this list of conditions and the following disclaimer in the
- #        documentation and/or other materials provided with the distribution.
- #     3. Neither the name of the copyright holder nor the
- #        names of its contributors may be used to endorse or promote products
- #        derived from this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- # ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- #
- ############################################################################################################################################
- ##
- ##! \file CMakeLists.txt
- #
- #   \brief Root level CMakeLists file.
- #
- #   \author Roshan Samuel
- #   \date Nov 2019
- #   \copyright New BSD License
- #
- ############################################################################################################################################
- ##
-
 # Cmake setup
-cmake_minimum_required (VERSION 2.8.3)
+cmake_minimum_required (VERSION 3.19)
 project (saras)
 
 if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
@@ -61,22 +19,43 @@ if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
             "        $ cmake [OPTIONS] ..\n")
 endif ()
 
+# Enable C++ standard
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Add ADIOS2 path to CMAKE_PREFIX_PATH
+set(CMAKE_PREFIX_PATH "/home/adios/local/adios-install")
+
 set (PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set (HEADER_DIR ${PARENT_DIR}/lib)
-# find_package(ADIOS2 REQUIRED) # please work
+
+# Find required packages
+find_package(MPI REQUIRED)
+find_package(ADIOS2 REQUIRED)
+
+# Skip MPI C++ bindings
+add_definitions(-DOMPI_SKIP_MPICXX -DMPICH_SKIP_MPICXX)
 
 message (STATUS "The parent directory is ${PARENT_DIR}")
 message (STATUS "Install folder is ${CMAKE_CURRENT_BINARY_DIR}")
 message (STATUS "All headers are in ${HEADER_DIR}")
+message (STATUS "ADIOS2 include dirs: ${ADIOS2_INCLUDE_DIRS}")
+message (STATUS "MPI include dirs: ${MPI_INCLUDE_PATH}")
+
+# Include MPI directories explicitly
+include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
 
 include_directories (${HEADER_DIR}/parallel
-                     ${HEADER_DIR}/boundary
-                     ${HEADER_DIR}/initial
-                     ${HEADER_DIR}/poisson
-                     ${HEADER_DIR}/force
-                     ${HEADER_DIR}/field
-                     ${HEADER_DIR}/grid
-                     ${HEADER_DIR}/io)
+                    ${HEADER_DIR}/boundary
+                    ${HEADER_DIR}/initial
+                    ${HEADER_DIR}/poisson
+                    ${HEADER_DIR}/force
+                    ${HEADER_DIR}/field
+                    ${HEADER_DIR}/grid
+                    ${HEADER_DIR}/io
+                    ${ADIOS2_INCLUDE_DIRS})
 
 # Search for yaml-cpp library
 find_package(yaml-cpp)
@@ -96,13 +75,12 @@ else ()
     endif ()
 endif ()
 
-# Add compiler flag to use older yaml-cpp commands
-if (YAML_LEGACY)
-    message (STATUS "Compiling Saras for older YAML Cpp library")
-    add_definitions(-DYAML_LEGACY)
-endif()
+# Compiler flags with MPI flags included
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS} -Wall -Ofast -fno-omit-frame-pointer")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -g -DBZ_DEBUG")
 
-# Add compiler flag for 2D/3D runs as requested by user while running cmake
+# Rest of your configuration flags
 if (PLANAR)
     message (STATUS "Compiling Saras for 2D simulations")
     add_definitions(-DPLANAR)
@@ -110,7 +88,6 @@ else ()
     message (STATUS "Compiling Saras for 3D simulations")
 endif ()
 
-# Add compiler flag for using single precision calculations
 if (REAL_SINGLE)
     message (STATUS "Compiling Saras to solve with single precision calculations")
     add_definitions(-DREAL_SINGLE)
@@ -119,50 +96,31 @@ else ()
     add_definitions(-DREAL_DOUBLE)
 endif ()
 
-# Add compiler flag for test runs as requested by user while running cmake
 if (TEST_RUN)
     message (STATUS "Compiling Saras for running unit tests")
     add_definitions(-DTEST_RUN)
 endif ()
 
-# Add compiler flag for timing runs for scaling if requested by user
 if (TIME_RUN)
     message (STATUS "Compiling Saras with additional timing calls")
     add_definitions(-DTIME_RUN)
 endif ()
 
-# Add compiler flag for testing the Poisson library
 if (TEST_POISSON)
     message (STATUS "Compiling Saras to test the Poisson library")
     add_definitions(-DTEST_POISSON)
 endif ()
 
-# Set compiler flags for normal and debug runs
-set (CMAKE_CXX_FLAGS "-Wall -Ofast")
-set (CMAKE_CXX_FLAGS_DEBUG "-Wall -g -DBZ_DEBUG")
-
 add_subdirectory (lib)
 add_subdirectory (src)
 
-# Remove the PLANAR variable from cache to force user to manually set the PLANAR flag each time a 2D run is needed
+# Cache cleanup
 unset (PLANAR CACHE)
-
-# Remove the TEST_RUN variable from cache to force user to manually set the TEST_RUN flag each time unit-tests must be performed
 unset (TEST_RUN CACHE)
-
-# Remove the TIME_RUN variable from cache to force user to manually set the TIME_RUN flag each time scaling run must be performed
 unset (TIME_RUN CACHE)
-
-# Remove the REAL_DOUBLE variable from cache to force user to manually set the precision each time the solver is compiled
 unset (REAL_DOUBLE CACHE)
-
-# Remove the REAL_SINGLE variable from cache to force user to manually set the precision each time the solver is compiled
 unset (REAL_SINGLE CACHE)
-
-# Remove the TEST_POISSON variable from cache to force user to manually set the flag for testing Poisson solver
 unset (TEST_POISSON CACHE)
-
-# Remove variables associated with finding yaml-cpp version from cache
 unset (yaml-cpp_FOUND CACHE)
 unset (yaml-cpp_VERSION CACHE)
 unset (YAML_LEGACY CACHE)

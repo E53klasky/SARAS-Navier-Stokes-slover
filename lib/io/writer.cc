@@ -1,10 +1,10 @@
 /********************************************************************************************************************************************
  * Saras
- * 
+ *
  * Copyright (C) 2019, Mahendra K. Verma
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     1. Redistributions of source code must retain the above copyright
@@ -15,7 +15,7 @@
  *     3. Neither the name of the copyright holder nor the
  *        names of its contributors may be used to endorse or promote products
  *        derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -53,14 +53,15 @@
  *
  ********************************************************************************************************************************************
  */
-writer::writer(const grid &mesh, std::vector<field> &wFields, std::string outDir)
-  : mesh(mesh), wFields(wFields), outputDir(outDir)
+writer::writer(const grid& mesh , std::vector<field>& wFields , std::string outDir)
+    : mesh(mesh) , wFields(wFields) , outputDir(outDir)
 {
     /** Initialize the common global and local limits for file writing */
     initLimits();
 
+
     /** Create output directory if it doesn't exist */
-    outputCheck();
+    outputCheck(); // this is what sets it to always go to output ???????? me 
 }
 
 /**
@@ -77,7 +78,7 @@ void writer::initLimits() {
 
     herr_t status;
 
-    blitz::TinyVector<int, 3> gloSize, sdStart, locSize;
+    blitz::TinyVector<int , 3> gloSize , sdStart , locSize;
 
 #ifdef PLANAR
     hsize_t dimsf[2];           /* dataset dimensions */
@@ -87,7 +88,7 @@ void writer::initLimits() {
     hsize_t offset[3];          /* offset of hyperslab */
 #endif
 
-    for (unsigned int i=0; i < wFields.size(); i++) {
+    for (unsigned int i = 0; i < wFields.size(); i++) {
         gloSize = mesh.globalSize;
         if (not wFields[i].xStag) {
             gloSize(0) -= 1;
@@ -137,12 +138,12 @@ void writer::initLimits() {
 #ifdef PLANAR
         dimsf[0] = locSize(0);
         dimsf[1] = locSize(2);
-        sDSpace = H5Screate_simple(2, dimsf, NULL);
+        sDSpace = H5Screate_simple(2 , dimsf , NULL);
 #else
         dimsf[0] = locSize(0);
         dimsf[1] = locSize(1);
         dimsf[2] = locSize(2);
-        sDSpace = H5Screate_simple(3, dimsf, NULL);
+        sDSpace = H5Screate_simple(3 , dimsf , NULL);
 #endif
 
         // Modify the view of the *source* dataspace by using a hyperslab - *this view will be used to read from memory*
@@ -162,7 +163,7 @@ void writer::initLimits() {
         offset[2] = 0;
 #endif
 
-        status = H5Sselect_hyperslab(sDSpace, H5S_SELECT_SET, offset, NULL, dimsf, NULL);
+        status = H5Sselect_hyperslab(sDSpace , H5S_SELECT_SET , offset , NULL , dimsf , NULL);
         if (status) {
             if (mesh.rankData.rank == 0) {
                 std::cout << "Error in creating hyperslab while writing data. Aborting" << std::endl;
@@ -175,21 +176,23 @@ void writer::initLimits() {
 #ifdef PLANAR
         dimsf[0] = gloSize(0);
         dimsf[1] = gloSize(2);
-        tDSpace = H5Screate_simple(2, dimsf, NULL);
+        tDSpace = H5Screate_simple(2 , dimsf , NULL);
 #else
         dimsf[0] = gloSize(0);
         dimsf[1] = gloSize(1);
         dimsf[2] = gloSize(2);
-        tDSpace = H5Screate_simple(3, dimsf, NULL);
+        tDSpace = H5Screate_simple(3 , dimsf , NULL);
 #endif
 
         // Modify the view of the *target* dataspace by using a hyperslab according to its position in the global file dataspace
 #ifdef PLANAR
+        // 2d  local sizes and offests 
         dimsf[0] = locSize(0);
         dimsf[1] = locSize(2);
         offset[0] = sdStart[0];
         offset[1] = sdStart[2];
 #else
+        // 3d local sizes and offests 
         dimsf[0] = locSize(0);
         dimsf[1] = locSize(1);
         dimsf[2] = locSize(2);
@@ -198,7 +201,7 @@ void writer::initLimits() {
         offset[2] = sdStart[2];
 #endif
 
-        status = H5Sselect_hyperslab(tDSpace, H5S_SELECT_SET, offset, NULL, dimsf, NULL);
+        status = H5Sselect_hyperslab(tDSpace , H5S_SELECT_SET , offset , NULL , dimsf , NULL);
         if (status) {
             if (mesh.rankData.rank == 0) {
                 std::cout << "Error in creating hyperslab while writing data. Aborting" << std::endl;
@@ -228,8 +231,8 @@ void writer::outputCheck() {
 
     if (mesh.rankData.rank == 0) {
         // Check if output directory exists
-        if (stat("output", &info) != 0) {
-            createStatus = mkdir("output", S_IRWXU | S_IRWXG);
+        if (stat("output" , &info) != 0) {
+            createStatus = mkdir("output" , S_IRWXU | S_IRWXG);
 
             // Raise error if the filesystem is read-only or something
             if (createStatus) {
@@ -273,12 +276,12 @@ void writer::writeTarang(real time) {
     // Generate the foldername corresponding to the time
     folderName = new char[100];
     constFile.str(std::string());
-    constFile << this->outputDir<<"/real_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time;
-    strcpy(folderName, constFile.str().c_str());
+    constFile << this->outputDir << "/real_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time;
+    strcpy(folderName , constFile.str().c_str());
 
     if (mesh.rankData.rank == 0) {
-        if (stat(folderName, &info) != 0) {
-            createStatus = mkdir(folderName, S_IRWXU | S_IRWXG);
+        if (stat(folderName , &info) != 0) {
+            createStatus = mkdir(folderName , S_IRWXU | S_IRWXG);
 
             // Raise error if the filesystem is read-only or something
             if (createStatus) {
@@ -288,41 +291,42 @@ void writer::writeTarang(real time) {
         }
     }
 
-    for (unsigned int i=0; i < wFields.size(); i++) {
+    for (unsigned int i = 0; i < wFields.size(); i++) {
         // Below is a very dirty way to make the file names of hdf5 solution from SARAS to match those of TARANG.
         // Clearly, it is not neat. But then, the output of TARANG itself is not neat. So what is there to say?
         fieldStr = new char[100];
         constFile.str(std::string());
 
-        if (!std::strcmp(wFields[i].fieldName.c_str(), "Vx")) constFile << "U.V1";
-        else if (!std::strcmp(wFields[i].fieldName.c_str(), "Vy")) constFile << "U.V2";
-        else if (!std::strcmp(wFields[i].fieldName.c_str(), "Vz")) constFile << "U.V3";
-        else if (!std::strcmp(wFields[i].fieldName.c_str(), "P")) constFile << "P.F";
-        else if (!std::strcmp(wFields[i].fieldName.c_str(), "T")) constFile << "T.F";
-        strcpy(fieldStr, constFile.str().c_str());
+        // var names--------  
+        if (!std::strcmp(wFields[i].fieldName.c_str() , "Vx")) constFile << "U.V1";
+        else if (!std::strcmp(wFields[i].fieldName.c_str() , "Vy")) constFile << "U.V2";
+        else if (!std::strcmp(wFields[i].fieldName.c_str() , "Vz")) constFile << "U.V3";
+        else if (!std::strcmp(wFields[i].fieldName.c_str() , "P")) constFile << "P.F";
+        else if (!std::strcmp(wFields[i].fieldName.c_str() , "T")) constFile << "T.F";
+        strcpy(fieldStr , constFile.str().c_str());
 
         // Create a property list for collectively opening a file by all processors
         plist_id = H5Pcreate(H5P_FILE_ACCESS);
-        H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+        H5Pset_fapl_mpio(plist_id , MPI_COMM_WORLD , MPI_INFO_NULL);
 
         // Generate the foldername corresponding to the time
-        fileName = new char[100];
+        fileName = new char[100]; // doesn't matter 
         constFile.str(std::string());
         constFile << folderName << "/" << fieldStr << "r.h5";
-        strcpy(fileName, constFile.str().c_str());
+        strcpy(fileName , constFile.str().c_str());
 
         // First create a file handle with the path to the output file
-        fileHandle = H5Fcreate(fileName, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+        fileHandle = H5Fcreate(fileName , H5F_ACC_TRUNC , H5P_DEFAULT , plist_id);
 
         // Close the property list for later reuse
         H5Pclose(plist_id);
 
         // Create a property list to use collective data write
         plist_id = H5Pcreate(H5P_DATASET_XFER);
-        H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+        H5Pset_dxpl_mpio(plist_id , H5FD_MPIO_COLLECTIVE);
 
 #ifdef PLANAR
-        fieldData.resize(blitz::TinyVector<int, 2>(localSize[pIndex](0), localSize[pIndex](2)));
+        fieldData.resize(blitz::TinyVector<int , 2>(localSize[pIndex](0) , localSize[pIndex](2)));
 #else
         fieldData.resize(localSize[pIndex]);
 #endif
@@ -332,14 +336,14 @@ void writer::writeTarang(real time) {
 
         // Create the dataset *for the file*, linking it to the file handle.
         // Correspondingly, it will use the *core* dataspace, as only the core has to be written excluding the pads
-        dataSet = H5Dcreate2(fileHandle, wFields[i].fieldName.c_str(), H5T_NATIVE_REAL, targetDSpace[pIndex], H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        dataSet = H5Dcreate2(fileHandle , wFields[i].fieldName.c_str() , H5T_NATIVE_REAL , targetDSpace[pIndex] , H5P_DEFAULT , H5P_DEFAULT , H5P_DEFAULT);
 
         // Write the dataset. Most important thing to note is that the 3rd and 4th arguments represent the *source* and *destination* dataspaces.
         // The source here is the sourceDSpace pointing to the memory buffer. Note that its view has been adjusted using hyperslab.
         // The destination is the targetDSpace. Though the targetDSpace is smaller than the sourceDSpace,
         // only the appropriate hyperslab within the sourceDSpace is transferred to the destination.
 
-        status = H5Dwrite(dataSet, H5T_NATIVE_REAL, sourceDSpace[pIndex], targetDSpace[pIndex], plist_id, fieldData.dataFirst());
+        status = H5Dwrite(dataSet , H5T_NATIVE_REAL , sourceDSpace[pIndex] , targetDSpace[pIndex] , plist_id , fieldData.dataFirst());
         if (status) {
             if (mesh.rankData.rank == 0) {
                 std::cout << "Error in writing output to HDF file. Aborting" << std::endl;
@@ -386,27 +390,36 @@ void writer::writeSolution(real time) {
 
     // Create a property list for collectively opening a file by all processors
     plist_id = H5Pcreate(H5P_FILE_ACCESS);
-    H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+    H5Pset_fapl_mpio(plist_id , MPI_COMM_WORLD , MPI_INFO_NULL);
 
-    // Generate the filename corresponding to the solution file
+     // ADIOS2 IO setup
+    MPI_Comm comm = MPI_COMM_WORLD;
+
+    adios2::ADIOS adios(comm);
+    adios2::IO bpIO = adios.DeclareIO("WriteIO");
+    adios2::Engine bpWriter = bpIO.Open("output.bp" , adios2::Mode::Write);
+    bpWriter.Close(); // please work
+
+
+// Generate the filename corresponding to the solution file
     fileName = new char[100];
     constFile.str(std::string());
-    constFile << this->outputDir<<"/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
-    strcpy(fileName, constFile.str().c_str());
+    constFile << this->outputDir << "/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
+    strcpy(fileName , constFile.str().c_str());
 
     // First create a file handle with the path to the output file
-    fileHandle = H5Fcreate(fileName, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+    fileHandle = H5Fcreate(fileName , H5F_ACC_TRUNC , H5P_DEFAULT , plist_id);
 
     // Close the property list for later reuse
     H5Pclose(plist_id);
 
     // Create a property list to use collective data write
     plist_id = H5Pcreate(H5P_DATASET_XFER);
-    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(plist_id , H5FD_MPIO_COLLECTIVE);
 
-    for (unsigned int i=0; i < wFields.size(); i++) {
+    for (unsigned int i = 0; i < wFields.size(); i++) {
 #ifdef PLANAR
-        fieldData.resize(blitz::TinyVector<int, 2>(localSize[pIndex](0), localSize[pIndex](2)));
+        fieldData.resize(blitz::TinyVector<int , 2>(localSize[pIndex](0) , localSize[pIndex](2)));
 #else
         fieldData.resize(localSize[pIndex]);
 #endif
@@ -416,14 +429,14 @@ void writer::writeSolution(real time) {
 
         // Create the dataset *for the file*, linking it to the file handle.
         // Correspondingly, it will use the *core* dataspace, as only the core has to be written excluding the pads
-        dataSet = H5Dcreate2(fileHandle, wFields[i].fieldName.c_str(), H5T_NATIVE_REAL, targetDSpace[pIndex], H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        dataSet = H5Dcreate2(fileHandle , wFields[i].fieldName.c_str() , H5T_NATIVE_REAL , targetDSpace[pIndex] , H5P_DEFAULT , H5P_DEFAULT , H5P_DEFAULT);
 
         // Write the dataset. Most important thing to note is that the 3rd and 4th arguments represent the *source* and *destination* dataspaces.
         // The source here is the sourceDSpace pointing to the memory buffer. Note that its view has been adjusted using hyperslab.
         // The destination is the targetDSpace. Though the targetDSpace is smaller than the sourceDSpace,
         // only the appropriate hyperslab within the sourceDSpace is transferred to the destination.
 
-        status = H5Dwrite(dataSet, H5T_NATIVE_REAL, sourceDSpace[pIndex], targetDSpace[pIndex], plist_id, fieldData.dataFirst());
+        status = H5Dwrite(dataSet , H5T_NATIVE_REAL , sourceDSpace[pIndex] , targetDSpace[pIndex] , plist_id , fieldData.dataFirst());
         if (status) {
             if (mesh.rankData.rank == 0) {
                 std::cout << "Error in writing output to HDF file. Aborting" << std::endl;
@@ -463,19 +476,19 @@ void writer::writeRestart(real time) {
 
     // Create a property list for collectively opening a file by all processors
     plist_id = H5Pcreate(H5P_FILE_ACCESS);
-    H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+    H5Pset_fapl_mpio(plist_id , MPI_COMM_WORLD , MPI_INFO_NULL);
 
     // First create a file handle with the path to the output file
     std::string _fname = this->outputDir + "/restartFile.h5";
-    fileHandle = H5Fcreate(_fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+    fileHandle = H5Fcreate(_fname.c_str() , H5F_ACC_TRUNC , H5P_DEFAULT , plist_id);
 
     // Close the property list for later reuse
     H5Pclose(plist_id);
 
     // Add the scalar value of time to the restart file
     hid_t timeDSpace = H5Screate(H5S_SCALAR);
-    dataSet = H5Dcreate2(fileHandle, "Time", H5T_NATIVE_REAL, timeDSpace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Dwrite(dataSet, H5T_NATIVE_REAL, timeDSpace, timeDSpace, H5P_DEFAULT, &time);
+    dataSet = H5Dcreate2(fileHandle , "Time" , H5T_NATIVE_REAL , timeDSpace , H5P_DEFAULT , H5P_DEFAULT , H5P_DEFAULT);
+    status = H5Dwrite(dataSet , H5T_NATIVE_REAL , timeDSpace , timeDSpace , H5P_DEFAULT , &time);
 
     // Close dataset for future use and dataspace for clearing resources
     H5Dclose(dataSet);
@@ -483,11 +496,11 @@ void writer::writeRestart(real time) {
 
     // Create a property list to use collective data write
     plist_id = H5Pcreate(H5P_DATASET_XFER);
-    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(plist_id , H5FD_MPIO_COLLECTIVE);
 
-    for (unsigned int i=0; i < wFields.size(); i++) {
+    for (unsigned int i = 0; i < wFields.size(); i++) {
 #ifdef PLANAR
-        fieldData.resize(blitz::TinyVector<int, 2>(localSize[i](0), localSize[i](2)));
+        fieldData.resize(blitz::TinyVector<int , 2>(localSize[i](0) , localSize[i](2)));
 #else
         fieldData.resize(localSize[i]);
 #endif
@@ -497,14 +510,14 @@ void writer::writeRestart(real time) {
 
         // Create the dataset *for the file*, linking it to the file handle.
         // Correspondingly, it will use the *core* dataspace, as only the core has to be written excluding the pads
-        dataSet = H5Dcreate2(fileHandle, wFields[i].fieldName.c_str(), H5T_NATIVE_REAL, targetDSpace[i], H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        dataSet = H5Dcreate2(fileHandle , wFields[i].fieldName.c_str() , H5T_NATIVE_REAL , targetDSpace[i] , H5P_DEFAULT , H5P_DEFAULT , H5P_DEFAULT);
 
         // Write the dataset. Most important thing to note is that the 3rd and 4th arguments represent the *source* and *destination* dataspaces.
         // The source here is the sourceDSpace pointing to the memory buffer. Note that its view has been adjusted using hyperslab.
         // The destination is the targetDSpace. Though the targetDSpace is smaller than the sourceDSpace,
         // only the appropriate hyperslab within the sourceDSpace is transferred to the destination.
 
-        status = H5Dwrite(dataSet, H5T_NATIVE_REAL, sourceDSpace[i], targetDSpace[i], plist_id, fieldData.dataFirst());
+        status = H5Dwrite(dataSet , H5T_NATIVE_REAL , sourceDSpace[i] , targetDSpace[i] , plist_id , fieldData.dataFirst());
         if (status) {
             if (mesh.rankData.rank == 0) {
                 std::cout << "Error in writing output to HDF file. Aborting" << std::endl;
@@ -531,18 +544,18 @@ void writer::writeRestart(real time) {
  *
  ********************************************************************************************************************************************
  */
-void writer::copyData(field &outField) {
+void writer::copyData(field& outField) {
 #ifdef PLANAR
-    for (int i=0; i < fieldData.shape()[0]; i++) {
-        for (int k=0; k < fieldData.shape()[1]; k++) {
-            fieldData(i, k) = outField.F(i, 0, k);
+    for (int i = 0; i < fieldData.shape()[0]; i++) {
+        for (int k = 0; k < fieldData.shape()[1]; k++) {
+            fieldData(i , k) = outField.F(i , 0 , k);
         }
     }
 #else
-    for (int i=0; i < fieldData.shape()[0]; i++) {
-        for (int j=0; j < fieldData.shape()[1]; j++) {
-            for (int k=0; k < fieldData.shape()[2]; k++) {
-                fieldData(i, j, k) = outField.F(i, j, k);
+    for (int i = 0; i < fieldData.shape()[0]; i++) {
+        for (int j = 0; j < fieldData.shape()[1]; j++) {
+            for (int k = 0; k < fieldData.shape()[2]; k++) {
+                fieldData(i , j , k) = outField.F(i , j , k);
             }
         }
     }
@@ -558,60 +571,65 @@ void writer::copyData(field &outField) {
  *
  ********************************************************************************************************************************************
  */
-void writer::interpolateData(field &outField) {
+void writer::interpolateData(field& outField) {
     // The below method does not recognize arrays with staggering in more than 1 direction
     // Use with care for exotic arrays
 
 #ifdef PLANAR
     if (not outField.xStag) {
-        for (int i=0; i < fieldData.shape()[0]; i++) {
-            for (int k=0; k < fieldData.shape()[2]; k++) {
-                fieldData(i, k) = (outField.F(i-1, 0, k) + outField.F(i, 0, k))*0.5;
+        for (int i = 0; i < fieldData.shape()[0]; i++) {
+            for (int k = 0; k < fieldData.shape()[2]; k++) {
+                fieldData(i , k) = (outField.F(i - 1 , 0 , k) + outField.F(i , 0 , k)) * 0.5;
             }
         }
-    } else if (not outField.zStag) {
-        for (int i=0; i < fieldData.shape()[0]; i++) {
-            for (int k=0; k < fieldData.shape()[2]; k++) {
-                fieldData(i, k) = (outField.F(i, 0, k-1) + outField.F(i, 0, k))*0.5;
+    }
+    else if (not outField.zStag) {
+        for (int i = 0; i < fieldData.shape()[0]; i++) {
+            for (int k = 0; k < fieldData.shape()[2]; k++) {
+                fieldData(i , k) = (outField.F(i , 0 , k - 1) + outField.F(i , 0 , k)) * 0.5;
             }
         }
-    } else {
-        for (int i=0; i < fieldData.shape()[0]; i++) {
-            for (int k=0; k < fieldData.shape()[2]; k++) {
-                fieldData(i, k) = outField.F(i, 0, k);
+    }
+    else {
+        for (int i = 0; i < fieldData.shape()[0]; i++) {
+            for (int k = 0; k < fieldData.shape()[2]; k++) {
+                fieldData(i , k) = outField.F(i , 0 , k);
             }
         }
     }
 #else
     if (not outField.xStag) {
-        for (int i=0; i < fieldData.shape()[0]; i++) {
-            for (int j=0; j < fieldData.shape()[1]; j++) {
-                for (int k=0; k < fieldData.shape()[2]; k++) {
-                    fieldData(i, j, k) = (outField.F(i-1, j, k) + outField.F(i, j, k))*0.5;
+        for (int i = 0; i < fieldData.shape()[0]; i++) {
+            for (int j = 0; j < fieldData.shape()[1]; j++) {
+                for (int k = 0; k < fieldData.shape()[2]; k++) {
+                    fieldData(i , j , k) = (outField.F(i - 1 , j , k) + outField.F(i , j , k)) * 0.5;
                 }
             }
         }
-    } else if (not outField.yStag) {
-        for (int i=0; i < fieldData.shape()[0]; i++) {
-            for (int j=0; j < fieldData.shape()[1]; j++) {
-                for (int k=0; k < fieldData.shape()[2]; k++) {
-                    fieldData(i, j, k) = (outField.F(i, j-1, k) + outField.F(i, j, k))*0.5;
+    }
+    else if (not outField.yStag) {
+        for (int i = 0; i < fieldData.shape()[0]; i++) {
+            for (int j = 0; j < fieldData.shape()[1]; j++) {
+                for (int k = 0; k < fieldData.shape()[2]; k++) {
+                    fieldData(i , j , k) = (outField.F(i , j - 1 , k) + outField.F(i , j , k)) * 0.5;
                 }
             }
         }
-    } else if (not outField.zStag) {
-        for (int i=0; i < fieldData.shape()[0]; i++) {
-            for (int j=0; j < fieldData.shape()[1]; j++) {
-                for (int k=0; k < fieldData.shape()[2]; k++) {
-                    fieldData(i, j, k) = (outField.F(i, j, k-1) + outField.F(i, j, k))*0.5;
+    }
+    else if (not outField.zStag) {
+        for (int i = 0; i < fieldData.shape()[0]; i++) {
+            for (int j = 0; j < fieldData.shape()[1]; j++) {
+                for (int k = 0; k < fieldData.shape()[2]; k++) {
+                    fieldData(i , j , k) = (outField.F(i , j , k - 1) + outField.F(i , j , k)) * 0.5;
                 }
             }
         }
-    } else {
-        for (int i=0; i < fieldData.shape()[0]; i++) {
-            for (int j=0; j < fieldData.shape()[1]; j++) {
-                for (int k=0; k < fieldData.shape()[2]; k++) {
-                    fieldData(i, j, k) = outField.F(i, j, k);
+    }
+    else {
+        for (int i = 0; i < fieldData.shape()[0]; i++) {
+            for (int j = 0; j < fieldData.shape()[1]; j++) {
+                for (int k = 0; k < fieldData.shape()[2]; k++) {
+                    fieldData(i , j , k) = outField.F(i , j , k);
                 }
             }
         }
@@ -619,4 +637,4 @@ void writer::interpolateData(field &outField) {
 #endif
 }
 
-writer::~writer() { }
+writer::~writer() {}
