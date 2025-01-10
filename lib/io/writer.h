@@ -60,6 +60,7 @@ class writer {
 public:
         writer(const grid& mesh , std::vector<field>& wFields , std::string outDir);
 
+        void writeBP(real time);
         void writeTarang(real time);
         void writeSolution(real time);
         void writeRestart(real time);
@@ -69,11 +70,11 @@ public:
 private:
         std::string outputDir = "output";
         const grid& mesh;
+        adios2::ADIOS* adios;
+        adios2::IO bpIO;
         adios2::Engine bpWriter;
-        std::vector<double>Vx;
-        std::vector<double>Vy;
-        std::vector<double>Vz;
-        std::vector<double>P;
+        adios2::Variable<double> bpVx , bpVy , bpVz , bpP;
+        bool isADIOSInitialized;
         std::vector<field>& wFields;
 
 #ifdef PLANAR

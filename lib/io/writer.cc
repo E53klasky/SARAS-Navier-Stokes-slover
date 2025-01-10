@@ -62,16 +62,95 @@ writer::writer(const grid& mesh , std::vector<field>& wFields , std::string outD
 
     /** Create output directory if it doesn't exist */
     outputCheck(); // this is what sets it to always go to output ???????? me 
+
+
+    // Initialize ADIOS2
+    adios = new adios2::ADIOS(MPI_COMM_WORLD);
+    bpIO = adios->DeclareIO("WriteBP");
+
+    // Define the variables (shape, start, count)
+    std::vector<std::size_t> shape = {
+        static_cast<std::size_t>(mesh.globalSize(0)),
+#ifndef PLANAR
+        static_cast<std::size_t>(mesh.globalSize(1)),
+#endif
+        static_cast<std::size_t>(mesh.globalSize(2))
+    };
+
+    std::vector<std::size_t> start = {
+        static_cast<std::size_t>(mesh.subarrayStarts[0]),
+#ifndef PLANAR
+        static_cast<std::size_t>(mesh.subarrayStarts[1]),
+#endif
+        static_cast<std::size_t>(mesh.subarrayStarts[2])
+    };
+
+    std::vector<std::size_t> count = {
+        static_cast<std::size_t>(localSize[0](0)),
+#ifndef PLANAR
+        static_cast<std::size_t>(localSize[0](1)),
+#endif
+        static_cast<std::size_t>(localSize[0](2))
+    };
+
+    // Declare variables
+    bpVx = bpIO.DefineVariable<double>("Vx" , shape , start , count);
+    bpVy = bpIO.DefineVariable<double>("Vy" , shape , start , count);
+    bpVz = bpIO.DefineVariable<double>("Vz" , shape , start , count);
+    bpP = bpIO.DefineVariable<double>("P" , shape , start , count);
+
 }
 
-/**
- ********************************************************************************************************************************************
- * \brief   Function to initialize the global and local limits for setting file views
- *
- *          All the necessary limits of the local arrays with respect to the global array for setting the
- *          dataspace views for HDF5 are appropriately set here.
- ********************************************************************************************************************************************
- */
+// Add new method for writing BP files
+void writer::writeBP(real time) {
+    if (!isADIOSInitialized) {
+        std::string filename = this->outputDir + "/output.bp";
+        bpWriter = bpIO.Open(filename , adios2::Mode::Write);
+        isADIOSInitialized = true;
+
+   // Start a step
+        bpWriter.BeginStep();
+    }
+    std::cout << "Outputing adios2 .bp files" << std::endl;
+
+    for (unsigned int i = 0; i < wFields.size(); i++) {
+#ifdef PLANAR
+        fieldData.resize(blitz::TinyVector<int , 2>(localSize[i](0) , localSize[i](2)));
+#else
+        fieldData.resize(localSize[i]);
+#endif
+        // Interpolate data to cell centers
+        interpolateData(wFields[i]);
+
+        // Write the appropriate variable based on field name
+        if (wFields[i].fieldName == "Vx") {
+            bpWriter.Put(bpVx , fieldData.dataFirst());
+        }
+        else if (wFields[i].fieldName == "Vy") {
+            bpWriter.Put(bpVy , fieldData.dataFirst());
+        }
+        else if (wFields[i].fieldName == "Vz") {
+            bpWriter.Put(bpVz , fieldData.dataFirst());
+        }
+        else if (wFields[i].fieldName == "P") {
+            bpWriter.Put(bpP , fieldData.dataFirst());
+        }
+    }
+
+    // End the step
+    bpWriter.EndStep();
+}
+
+
+
+    /**
+     ********************************************************************************************************************************************
+     * \brief   Function to initialize the global and local limits for setting file views
+     *
+     *          All the necessary limits of the local arrays with respect to the global array for setting the
+     *          dataspace views for HDF5 are appropriately set here.
+     ********************************************************************************************************************************************
+     */
 void writer::initLimits() {
     hid_t sDSpace;
     hid_t tDSpace;
@@ -393,13 +472,6 @@ void writer::writeSolution(real time) {
     plist_id = H5Pcreate(H5P_FILE_ACCESS);
     H5Pset_fapl_mpio(plist_id , MPI_COMM_WORLD , MPI_INFO_NULL);
 
-     // ADIOS2 IO setup
-    MPI_Comm comm = MPI_COMM_WORLD;
-
-    adios2::ADIOS adios(comm);
-    adios2::IO bpIO = adios.DeclareIO("WriteIO");
-    adios2::Engine bpWriter = bpIO.Open("output.bp" , adios2::Mode::Write);
-    bpWriter.Close(); // please work
 
 
  // Generate the filename corresponding to the solution file
@@ -444,30 +516,31 @@ void writer::writeSolution(real time) {
             }
             MPI_Finalize();
             exit(0);
-            }
-
-            // Close dataset for reuse
-        H5Dclose(dataSet);
         }
 
-        // CLOSE/RELEASE RESOURCES
+        // Close dataset for reuse
+        H5Dclose(dataSet);
+    }
+
+    // CLOSE/RELEASE RESOURCES
     H5Pclose(plist_id);
     H5Fclose(fileHandle);
 
     delete fileName;
-    }
+    writeBP(time);
+}
 
-    /**
-     ********************************************************************************************************************************************
-     * \brief   Function to write restart file in HDF5 format in parallel
-     *
-     *          It opens the restart file in the output folder and all the processors write in parallel into the file.
-     *          Unlike solution writing, the data is not interpolated and is written as is.
-     *          The restart file is overwritten with each call to this function.
-     *
-     * \param   time is a real value containing the time to be added as metadata to the restart file
-     ********************************************************************************************************************************************
-     */
+/**
+ ********************************************************************************************************************************************
+ * \brief   Function to write restart file in HDF5 format in parallel
+ *
+ *          It opens the restart file in the output folder and all the processors write in parallel into the file.
+ *          Unlike solution writing, the data is not interpolated and is written as is.
+ *          The restart file is overwritten with each call to this function.
+ *
+ * \param   time is a real value containing the time to be added as metadata to the restart file
+ ********************************************************************************************************************************************
+ */
 void writer::writeRestart(real time) {
     hid_t plist_id;
     hid_t fileHandle;
@@ -626,7 +699,7 @@ void writer::interpolateData(field& outField) {
                     fieldData(i , j , k) = (outField.F(i , j , k - 1) + outField.F(i , j , k)) * 0.5;
                 }
             }
-}
+        }
     }
     else {
         for (int i = 0; i < fieldData.shape()[0]; i++) {
@@ -640,4 +713,9 @@ void writer::interpolateData(field& outField) {
 #endif
 }
 
-writer::~writer() {}
+writer::~writer() {
+    if (isADIOSInitialized) {
+        bpWriter.Close();
+    }
+    delete adios;
+}
