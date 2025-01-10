@@ -69,7 +69,11 @@ public:
 private:
         std::string outputDir = "output";
         const grid& mesh;
-        adios2::Engine bpWriter; 
+        adios2::Engine bpWriter;
+        std::vector<double>Vx;
+        std::vector<double>Vy;
+        std::vector<double>Vz;
+        std::vector<double>P;
         std::vector<field>& wFields;
 
 #ifdef PLANAR

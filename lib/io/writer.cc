@@ -343,6 +343,7 @@ void writer::writeTarang(real time) {
         // The destination is the targetDSpace. Though the targetDSpace is smaller than the sourceDSpace,
         // only the appropriate hyperslab within the sourceDSpace is transferred to the destination.
 
+        // -----------------------------HERE----------------11111111111111111111---------------------------
         status = H5Dwrite(dataSet , H5T_NATIVE_REAL , sourceDSpace[pIndex] , targetDSpace[pIndex] , plist_id , fieldData.dataFirst());
         if (status) {
             if (mesh.rankData.rank == 0) {
@@ -401,7 +402,7 @@ void writer::writeSolution(real time) {
     bpWriter.Close(); // please work
 
 
-// Generate the filename corresponding to the solution file
+ // Generate the filename corresponding to the solution file
     fileName = new char[100];
     constFile.str(std::string());
     constFile << this->outputDir << "/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
@@ -435,7 +436,7 @@ void writer::writeSolution(real time) {
         // The source here is the sourceDSpace pointing to the memory buffer. Note that its view has been adjusted using hyperslab.
         // The destination is the targetDSpace. Though the targetDSpace is smaller than the sourceDSpace,
         // only the appropriate hyperslab within the sourceDSpace is transferred to the destination.
-
+  // -----------------------------HERE----------------11111111111111111111---------------------------
         status = H5Dwrite(dataSet , H5T_NATIVE_REAL , sourceDSpace[pIndex] , targetDSpace[pIndex] , plist_id , fieldData.dataFirst());
         if (status) {
             if (mesh.rankData.rank == 0) {
@@ -443,30 +444,30 @@ void writer::writeSolution(real time) {
             }
             MPI_Finalize();
             exit(0);
+            }
+
+            // Close dataset for reuse
+        H5Dclose(dataSet);
         }
 
-        // Close dataset for reuse
-        H5Dclose(dataSet);
-    }
-
-    // CLOSE/RELEASE RESOURCES
+        // CLOSE/RELEASE RESOURCES
     H5Pclose(plist_id);
     H5Fclose(fileHandle);
 
     delete fileName;
-}
+    }
 
-/**
- ********************************************************************************************************************************************
- * \brief   Function to write restart file in HDF5 format in parallel
- *
- *          It opens the restart file in the output folder and all the processors write in parallel into the file.
- *          Unlike solution writing, the data is not interpolated and is written as is.
- *          The restart file is overwritten with each call to this function.
- *
- * \param   time is a real value containing the time to be added as metadata to the restart file
- ********************************************************************************************************************************************
- */
+    /**
+     ********************************************************************************************************************************************
+     * \brief   Function to write restart file in HDF5 format in parallel
+     *
+     *          It opens the restart file in the output folder and all the processors write in parallel into the file.
+     *          Unlike solution writing, the data is not interpolated and is written as is.
+     *          The restart file is overwritten with each call to this function.
+     *
+     * \param   time is a real value containing the time to be added as metadata to the restart file
+     ********************************************************************************************************************************************
+     */
 void writer::writeRestart(real time) {
     hid_t plist_id;
     hid_t fileHandle;
@@ -488,6 +489,7 @@ void writer::writeRestart(real time) {
     // Add the scalar value of time to the restart file
     hid_t timeDSpace = H5Screate(H5S_SCALAR);
     dataSet = H5Dcreate2(fileHandle , "Time" , H5T_NATIVE_REAL , timeDSpace , H5P_DEFAULT , H5P_DEFAULT , H5P_DEFAULT);
+      // -----------------------------HERE----------------11111111111111111111---------------------------
     status = H5Dwrite(dataSet , H5T_NATIVE_REAL , timeDSpace , timeDSpace , H5P_DEFAULT , &time);
 
     // Close dataset for future use and dataspace for clearing resources
@@ -517,6 +519,7 @@ void writer::writeRestart(real time) {
         // The destination is the targetDSpace. Though the targetDSpace is smaller than the sourceDSpace,
         // only the appropriate hyperslab within the sourceDSpace is transferred to the destination.
 
+          // -----------------------------HERE----------------11111111111111111111---------------------------
         status = H5Dwrite(dataSet , H5T_NATIVE_REAL , sourceDSpace[i] , targetDSpace[i] , plist_id , fieldData.dataFirst());
         if (status) {
             if (mesh.rankData.rank == 0) {
@@ -623,7 +626,7 @@ void writer::interpolateData(field& outField) {
                     fieldData(i , j , k) = (outField.F(i , j , k - 1) + outField.F(i , j , k)) * 0.5;
                 }
             }
-        }
+}
     }
     else {
         for (int i = 0; i < fieldData.shape()[0]; i++) {

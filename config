@@ -1,0 +1,3 @@
+CC=mpicc CXX=mpicxx cmake -DPLANAR=ON ../
+
+#-DREAL_SINGLE=ON ../
