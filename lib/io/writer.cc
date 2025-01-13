@@ -56,62 +56,59 @@
 writer::writer(const grid& mesh , std::vector<field>& wFields , std::string outDir)
     : mesh(mesh) , wFields(wFields) , outputDir(outDir)
 {
-    /** Initialize the common global and local limits for file writing */
     initLimits();
+    outputCheck();
 
-
-    /** Create output directory if it doesn't exist */
-    outputCheck(); // this is what sets it to always go to output ???????? me 
-
-
-    // Initialize ADIOS2
     adios = new adios2::ADIOS(MPI_COMM_WORLD);
     bpIO = adios->DeclareIO("WriteBP");
 
-    // Define the variables (shape, start, count)
-    std::vector<std::size_t> shape = {
-        static_cast<std::size_t>(mesh.globalSize(0)),
+    // Define variables with proper offsets based on staggering
+    for (unsigned int i = 0; i < wFields.size(); i++) {
+        // Use cell-centered dimensions for all variables since we interpolate before writing
+        std::vector<std::size_t> shape = {
+            static_cast<std::size_t>(mesh.globalSize(0)),
 #ifndef PLANAR
-        static_cast<std::size_t>(mesh.globalSize(1)),
+            static_cast<std::size_t>(mesh.globalSize(1)),
 #endif
-        static_cast<std::size_t>(mesh.globalSize(2))
-    };
+            static_cast<std::size_t>(mesh.globalSize(2))
+        };
 
-    std::vector<std::size_t> start = {
-        static_cast<std::size_t>(mesh.subarrayStarts[0]),
+        std::vector<std::size_t> start = {
+            static_cast<std::size_t>(mesh.subarrayStarts[0]),
 #ifndef PLANAR
-        static_cast<std::size_t>(mesh.subarrayStarts[1]),
+            static_cast<std::size_t>(mesh.subarrayStarts[1]),
 #endif
-        static_cast<std::size_t>(mesh.subarrayStarts[2])
-    };
+            static_cast<std::size_t>(mesh.subarrayStarts[2])
+        };
 
-    std::vector<std::size_t> count = {
-        static_cast<std::size_t>(localSize[0](0)),
+        // Use the same dimensions as HDF5 output
+        std::vector<std::size_t> count = {
+            static_cast<std::size_t>(localSize[i](0)),
 #ifndef PLANAR
-        static_cast<std::size_t>(localSize[0](1)),
+            static_cast<std::size_t>(localSize[i](1)),
 #endif
-        static_cast<std::size_t>(localSize[0](2))
-    };
+            static_cast<std::size_t>(localSize[i](2))
+        };
 
-    // Declare variables
-    bpVx = bpIO.DefineVariable<double>("Vx" , shape , start , count);
-    bpVy = bpIO.DefineVariable<double>("Vy" , shape , start , count);
-    bpVz = bpIO.DefineVariable<double>("Vz" , shape , start , count);
-    bpP = bpIO.DefineVariable<double>("P" , shape , start , count);
-
+        if (wFields[i].fieldName == "Vx") {
+            bpVx = bpIO.DefineVariable<double>("Vx" , shape , start , count);
+        }
+        else if (wFields[i].fieldName == "Vz") {
+            bpVz = bpIO.DefineVariable<double>("Vz" , shape , start , count);
+        }
+        else if (wFields[i].fieldName == "P") {
+            bpP = bpIO.DefineVariable<double>("P" , shape , start , count);
+        }
+    }
 }
-
 // Add new method for writing BP files
 void writer::writeBP(real time) {
     if (!isADIOSInitialized) {
         std::string filename = this->outputDir + "/output.bp";
         bpWriter = bpIO.Open(filename , adios2::Mode::Write);
         isADIOSInitialized = true;
-
-   // Start a step
         bpWriter.BeginStep();
     }
-    std::cout << "Outputing adios2 .bp files" << std::endl;
 
     for (unsigned int i = 0; i < wFields.size(); i++) {
 #ifdef PLANAR
@@ -122,7 +119,16 @@ void writer::writeBP(real time) {
         // Interpolate data to cell centers
         interpolateData(wFields[i]);
 
-        // Write the appropriate variable based on field name
+        // Debug print
+        if (mesh.rankData.rank == 0) {
+            double* data = fieldData.dataFirst();
+            std::cout << "Field " << wFields[i].fieldName << " first 5 values: ";
+            for (int j = 0; j < 5; j++) {
+                std::cout << data[j] << " ";
+            }
+            std::cout << std::endl;
+        }
+
         if (wFields[i].fieldName == "Vx") {
             bpWriter.Put(bpVx , fieldData.dataFirst());
         }
@@ -137,10 +143,8 @@ void writer::writeBP(real time) {
         }
     }
 
-    // End the step
     bpWriter.EndStep();
 }
-
 
 
     /**
@@ -626,7 +630,7 @@ void writer::copyData(field& outField) {
         for (int k = 0; k < fieldData.shape()[1]; k++) {
             fieldData(i , k) = outField.F(i , 0 , k);
         }
-    }
+}
 #else
     for (int i = 0; i < fieldData.shape()[0]; i++) {
         for (int j = 0; j < fieldData.shape()[1]; j++) {
@@ -652,6 +656,12 @@ void writer::interpolateData(field& outField) {
     // Use with care for exotic arrays
 
 #ifdef PLANAR
+    if (mesh.rankData.rank == 0) {
+        std::cout << "Interpolating " << outField.fieldName
+            << " xStag=" << outField.xStag
+            << " zStag=" << outField.zStag << std::endl;
+    }
+
     if (not outField.xStag) {
         for (int i = 0; i < fieldData.shape()[0]; i++) {
             for (int k = 0; k < fieldData.shape()[2]; k++) {
@@ -672,7 +682,7 @@ void writer::interpolateData(field& outField) {
                 fieldData(i , k) = outField.F(i , 0 , k);
             }
         }
-    }
+}
 #else
     if (not outField.xStag) {
         for (int i = 0; i < fieldData.shape()[0]; i++) {

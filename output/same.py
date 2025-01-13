@@ -20,6 +20,9 @@ def read_adios_bp(file_path, variable):
     data = fr.read(variable)
     return data
 
+# def read_adios_bp(file_path, variable):
+    
+
 def compare_and_subtract(hdf5_data, adios_data):
     """Compare and subtract the datasets."""
     if hdf5_data.shape != adios_data.shape:
