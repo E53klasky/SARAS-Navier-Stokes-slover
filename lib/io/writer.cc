@@ -54,7 +54,7 @@
  ********************************************************************************************************************************************
  */
 writer::writer(const grid& mesh , std::vector<field>& wFields , std::string outDir)
-    : mesh(mesh) , wFields(wFields) , outputDir(outDir)
+    : mesh(mesh) , wFields(wFields) , outputDir(outDir) , timestepCounter(0) , isADIOSInitialized(false)
 {
     initLimits();
     outputCheck();
@@ -90,13 +90,23 @@ writer::writer(const grid& mesh , std::vector<field>& wFields , std::string outD
             static_cast<std::size_t>(localSize[i](2))
         };
 
+
         if (wFields[i].fieldName == "Vx") {
+            if (mesh.rankData.xRank == mesh.rankData.npX - 1) {
+                count[0] += 1;
+            }
+            // std::cout << mesh.rankData.rank << ": Vx Count: " << count[0] << " " << count[1] << std::endl;
             bpVx = bpIO.DefineVariable<double>("Vx" , shape , start , count);
         }
         else if (wFields[i].fieldName == "Vz") {
+            count[1] += 1;
+            // std::cout << mesh.rankData.rank << ": Vz Count: " << count[0] << " " << count[1] << std::endl;
             bpVz = bpIO.DefineVariable<double>("Vz" , shape , start , count);
         }
         else if (wFields[i].fieldName == "P") {
+            if (mesh.rankData.xRank == mesh.rankData.npX - 1) {
+                count[0] += 1;
+            }
             bpP = bpIO.DefineVariable<double>("P" , shape , start , count);
         }
     }
@@ -107,27 +117,30 @@ void writer::writeBP(real time) {
         std::string filename = this->outputDir + "/output.bp";
         bpWriter = bpIO.Open(filename , adios2::Mode::Write);
         isADIOSInitialized = true;
-        bpWriter.BeginStep();
     }
+
+    bpWriter.BeginStep();
+
+    int pIndex = wFields.size() - 1;
 
     for (unsigned int i = 0; i < wFields.size(); i++) {
 #ifdef PLANAR
-        fieldData.resize(blitz::TinyVector<int , 2>(localSize[i](0) , localSize[i](2)));
+        fieldData.resize(blitz::TinyVector<int , 2>(localSize[pIndex](0) , localSize[pIndex](2)));
 #else
-        fieldData.resize(localSize[i]);
+        fieldData.resize(localSize[pIndex]);
 #endif
         // Interpolate data to cell centers
         interpolateData(wFields[i]);
 
-        // Debug print
-        if (mesh.rankData.rank == 0) {
-            double* data = fieldData.dataFirst();
-            std::cout << "Field " << wFields[i].fieldName << " first 5 values: ";
-            for (int j = 0; j < 5; j++) {
-                std::cout << data[j] << " ";
-            }
-            std::cout << std::endl;
-        }
+        // // Debug print
+        // if (mesh.rankData.rank == 0) {
+        //     double* data = fieldData.dataFirst();
+        //     std::cout << "Field " << wFields[i].fieldName << " last 5 values: ";
+        //     for (int j = 0; j < 5; j++) {
+        //         std::cout << data[fieldData.size() - j - 1] << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
 
         if (wFields[i].fieldName == "Vx") {
             bpWriter.Put(bpVx , fieldData.dataFirst());
@@ -141,6 +154,7 @@ void writer::writeBP(real time) {
         else if (wFields[i].fieldName == "P") {
             bpWriter.Put(bpP , fieldData.dataFirst());
         }
+        bpWriter.PerformPuts();
     }
 
     bpWriter.EndStep();
@@ -284,6 +298,10 @@ void writer::initLimits() {
         offset[2] = sdStart[2];
 #endif
 
+        // if (wFields[i].fieldName == "P") {
+        //     std::cout << "Dimsf" << dimsf[0] << " " << dimsf[1] << std::endl;
+        // }
+
         status = H5Sselect_hyperslab(tDSpace , H5S_SELECT_SET , offset , NULL , dimsf , NULL);
         if (status) {
             if (mesh.rankData.rank == 0) {
@@ -293,6 +311,7 @@ void writer::initLimits() {
             exit(0);
         }
 
+        // std::cout << "Local size: " << locSize << std::endl;    
         localSize.push_back(locSize);
         sourceDSpace.push_back(sDSpace);
         targetDSpace.push_back(tDSpace);
@@ -501,6 +520,8 @@ void writer::writeSolution(real time) {
         fieldData.resize(localSize[pIndex]);
 #endif
 
+        std::cout << "FieldData size: " << fieldData.size() << std::endl;
+
         //Write data after first interpolating them to cell centers
         interpolateData(wFields[i]);
 
@@ -531,7 +552,17 @@ void writer::writeSolution(real time) {
     H5Fclose(fileHandle);
 
     delete fileName;
+
+    if (mesh.rankData.rank == 0)
+        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!THE TIME STEP IS: " << timestepCounter << std::endl;
+
+
+  //  if (timestepCounter == 1)
     writeBP(time);
+    timestepCounter++;
+    if (mesh.rankData.rank == 0)
+        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!THE NEXT TIME STEP IS: " << timestepCounter << std::endl;
+
 }
 
 /**
@@ -630,7 +661,7 @@ void writer::copyData(field& outField) {
         for (int k = 0; k < fieldData.shape()[1]; k++) {
             fieldData(i , k) = outField.F(i , 0 , k);
         }
-}
+    }
 #else
     for (int i = 0; i < fieldData.shape()[0]; i++) {
         for (int j = 0; j < fieldData.shape()[1]; j++) {
@@ -682,7 +713,7 @@ void writer::interpolateData(field& outField) {
                 fieldData(i , k) = outField.F(i , 0 , k);
             }
         }
-}
+    }
 #else
     if (not outField.xStag) {
         for (int i = 0; i < fieldData.shape()[0]; i++) {

@@ -69,7 +69,7 @@ mv ../../saras ../../tests/ldcTest/
 cd ../../tests/ldcTest/
 
 # Run the test case
-mpirun -np $PROC ./saras
+mpirun -np $PROC ./saras input/parameters.yaml output/
 
 # Run the python script to read the output file and compare with Ghia results
 python checkLDC.py

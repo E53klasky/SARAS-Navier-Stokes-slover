@@ -60,6 +60,7 @@ class writer {
 public:
         writer(const grid& mesh , std::vector<field>& wFields , std::string outDir);
 
+        // hard coding 2d for now
         void writeBP(real time);
         void writeTarang(real time);
         void writeSolution(real time);
@@ -68,14 +69,20 @@ public:
         ~writer();
 
 private:
+        int timestepCounter;
         std::string outputDir = "output";
+        adios2::Engine bpWriter;
         const grid& mesh;
+        bool isADIOSInitialized;
         adios2::ADIOS* adios;
         adios2::IO bpIO;
-        adios2::Engine bpWriter;
         adios2::Variable<double> bpVx , bpVy , bpVz , bpP;
-        bool isADIOSInitialized;
         std::vector<field>& wFields;
+
+        std::vector<double> vx_vector;
+        std::vector<double> vy_vector;
+        std::vector<double> vz_vector;
+        std::vector<double> p_vector;
 
 #ifdef PLANAR
         blitz::Array<real , 2> fieldData;
