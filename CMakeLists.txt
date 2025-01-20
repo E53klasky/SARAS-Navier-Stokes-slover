@@ -1,3 +1,48 @@
+<<<<<<< HEAD
+=======
+#############################################################################################################################################
+ # Saras
+ # 
+ # Copyright (C) 2019, Mahendra K. Verma
+ #
+ # All rights reserved.
+ # 
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are met:
+ #     1. Redistributions of source code must retain the above copyright
+ #        notice, this list of conditions and the following disclaimer.
+ #     2. Redistributions in binary form must reproduce the above copyright
+ #        notice, this list of conditions and the following disclaimer in the
+ #        documentation and/or other materials provided with the distribution.
+ #     3. Neither the name of the copyright holder nor the
+ #        names of its contributors may be used to endorse or promote products
+ #        derived from this software without specific prior written permission.
+ # 
+ # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ # ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ # (INCLUDING, BUT NOT LIMITED TO, PROCUR-EMENT OF SUBSTITUTE GOODS OR SERVICES;
+ # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #
+ ############################################################################################################################################
+ ##
+ ##! \file CMakeLists.txt
+ #
+ #   \brief Root level CMakeLists file.
+ #
+ #   \author Roshan Samuel
+ #   \date Nov 2019
+ #   \copyright New BSD License
+ #
+ ############################################################################################################################################
+ ##
+
+>>>>>>> origin/main
 # Cmake setup
 cmake_minimum_required (VERSION 3.19)
 project (saras)
@@ -19,12 +64,23 @@ if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
             "        $ cmake [OPTIONS] ..\n")
 endif ()
 
+<<<<<<< HEAD
 # Enable C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add ADIOS2 path to CMAKE_PREFIX_PATH
 set(CMAKE_PREFIX_PATH "/home/adios/local/adios-install")
+=======
+# Add this line before the rest of the configuration
+find_package(MPI REQUIRED)
+
+# If needed, you can manually specify the paths:
+# set(MPI_INCLUDE_DIR "/usr/lib/x86_64-linux-gnu/openmpi/include")
+# set(MPI_LIBRARY "/usr/lib/x86_64-linux-gnu/openmpi/lib")
+
+
+>>>>>>> origin/main
 
 set (PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set (HEADER_DIR ${PARENT_DIR}/lib)

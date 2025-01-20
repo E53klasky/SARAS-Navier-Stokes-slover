@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+THERE SEEMS TO BE A PROBLEM WHEN TRYING TO INSTALL SOME OF THE SOFTWARE ON MAC OS
+LINUX UBUNTU SEEMS TO WORK FINE. I DO NOT KNOW ABOUT WINDOWS
+strange but works try the test for some reason that works
 # Saras - Finite difference solver
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
@@ -324,3 +328,7 @@ Various articles and pages used to make programming decisions during development
 ### Journal references
 
 1. Ghia, U., Ghia, K. N., & Shin, C. T. (1982). High-Re solutions for incompressible flow using the Navier-Stokes equations and a multigrid method. J. Comput. Phys., 48(3), 387-411. 
+=======
+# SARAS-Navier-Stokes-slover
+this is going to be the start of my changes to this thing. Let's see how it goes. 
+>>>>>>> 63a8be1d7836939356a51d7ce5d13a39a4b3236a

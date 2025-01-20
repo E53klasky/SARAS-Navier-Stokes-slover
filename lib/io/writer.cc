@@ -53,9 +53,16 @@
  *
  ********************************************************************************************************************************************
  */
+<<<<<<< HEAD
 writer::writer(const grid& mesh , std::vector<field>& wFields , std::string outDir)
     : mesh(mesh) , wFields(wFields) , outputDir(outDir) , timestepCounter(0) , isADIOSInitialized(false)
 {
+=======
+writer::writer(const grid &mesh, std::vector<field> &wFields, std::string outDir)
+  : mesh(mesh), wFields(wFields), outputDir(outDir)
+{
+    /** Initialize the common global and local limits for file writing */
+>>>>>>> origin/main
     initLimits();
     outputCheck();
 
@@ -378,8 +385,13 @@ void writer::writeTarang(real time) {
     // Generate the foldername corresponding to the time
     folderName = new char[100];
     constFile.str(std::string());
+<<<<<<< HEAD
     constFile << this->outputDir << "/real_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time;
     strcpy(folderName , constFile.str().c_str());
+=======
+    constFile << this->outputDir<<"/real_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time;
+    strcpy(folderName, constFile.str().c_str());
+>>>>>>> origin/main
 
     if (mesh.rankData.rank == 0) {
         if (stat(folderName , &info) != 0) {
@@ -500,8 +512,13 @@ void writer::writeSolution(real time) {
  // Generate the filename corresponding to the solution file
     fileName = new char[100];
     constFile.str(std::string());
+<<<<<<< HEAD
     constFile << this->outputDir << "/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
     strcpy(fileName , constFile.str().c_str());
+=======
+    constFile << this->outputDir<<"/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
+    strcpy(fileName, constFile.str().c_str());
+>>>>>>> origin/main
 
     // First create a file handle with the path to the output file
     fileHandle = H5Fcreate(fileName , H5F_ACC_TRUNC , H5P_DEFAULT , plist_id);
@@ -589,7 +606,11 @@ void writer::writeRestart(real time) {
 
     // First create a file handle with the path to the output file
     std::string _fname = this->outputDir + "/restartFile.h5";
+<<<<<<< HEAD
     fileHandle = H5Fcreate(_fname.c_str() , H5F_ACC_TRUNC , H5P_DEFAULT , plist_id);
+=======
+    fileHandle = H5Fcreate(_fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+>>>>>>> origin/main
 
     // Close the property list for later reuse
     H5Pclose(plist_id);

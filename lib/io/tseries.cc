@@ -1,10 +1,10 @@
 /********************************************************************************************************************************************
  * Saras
- * 
+ *
  * Copyright (C) 2019, Mahendra K. Verma
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     1. Redistributions of source code must retain the above copyright
@@ -15,7 +15,7 @@
  *     3. Neither the name of the copyright holder nor the
  *        names of its contributors may be used to endorse or promote products
  *        derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -59,13 +59,14 @@
  *
  ********************************************************************************************************************************************
  */
-tseries::tseries(const grid &mesh, vfield &solverV, const sfield &solverP, const real &solverTime, const real &timeStep):
-                 time(solverTime), tStp(timeStep), mesh(mesh), P(solverP), V(solverV), divV(mesh, P) {
-    // Open TimeSeries file
+tseries::tseries(const grid& mesh , vfield& solverV , const sfield& solverP , const real& solverTime , const real& timeStep) :
+    time(solverTime) , tStp(timeStep) , mesh(mesh) , P(solverP) , V(solverV) , divV(mesh , P) {
+// Open TimeSeries file
     if (mesh.inputParams.restartFlag) {
-        ofFile.open("output/TimeSeries.dat", std::fstream::out | std::fstream::app);
-    } else {
-        ofFile.open("output/TimeSeries.dat", std::fstream::out);
+        ofFile.open("output/TimeSeries.dat" , std::fstream::out | std::fstream::app);
+    }
+    else {
+        ofFile.open("output/TimeSeries.dat" , std::fstream::out);
     }
 
     // UPPER AND LOWER LIMITS WHEN COMPUTING ENERGY IN STAGGERED GRID
@@ -93,30 +94,31 @@ tseries::tseries(const grid &mesh, vfield &solverV, const sfield &solverP, const
 #ifdef PLANAR
     for (int iX = xLow; iX <= xTop; iX++) {
         for (int iZ = zLow; iZ <= zTop; iZ++) {
-            localVol += (mesh.dXi/mesh.xi_xColloc(iX))*(mesh.dZt/mesh.zt_zColloc(iZ));
+            localVol += (mesh.dXi / mesh.xi_xColloc(iX)) * (mesh.dZt / mesh.zt_zColloc(iZ));
         }
     }
 #else
     for (int iX = xLow; iX <= xTop; iX++) {
         for (int iY = yLow; iY <= yTop; iY++) {
             for (int iZ = zLow; iZ <= zTop; iZ++) {
-                localVol += (mesh.dXi/mesh.xi_xColloc(iX))*(mesh.dEt/mesh.et_yColloc(iY))*(mesh.dZt/mesh.zt_zColloc(iZ));
+                localVol += (mesh.dXi / mesh.xi_xColloc(iX)) * (mesh.dEt / mesh.et_yColloc(iY)) * (mesh.dZt / mesh.zt_zColloc(iZ));
             }
         }
     }
 #endif
-    MPI_Allreduce(&localVol, &totalVol, 1, MPI_FP_REAL, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&localVol , &totalVol , 1 , MPI_FP_REAL , MPI_SUM , MPI_COMM_WORLD);
 
     // WRITE THE HEADERS FOR BOTH STANDARD I/O AS WELL AS THE OUTPUT TIME-SERIES FILE
     if (mesh.rankData.rank == 0) {
         if (mesh.inputParams.probType <= 4) {
-            std::cout << std::fixed << std::setw(6)  << "Time" << "\t" <<
-                                    std::setw(16) << "Total energy" << "\t" << "Divergence" << std::endl;
+            std::cout << std::fixed << std::setw(6) << "Time" << "\t" <<
+                std::setw(16) << "Total energy" << "\t" << "Divergence" << std::endl;
 
             ofFile << "#VARIABLES = Time, Energy, Divergence, dt\n";
-        } else {
-            std::cout << std::fixed << std::setw(6)  << "Time" << "\t" <<
-                                    std::setw(16) << "Re (Urms)" << "\t" << "Nusselt No" << "\t" << "Divergence" << std::endl;
+        }
+        else {
+            std::cout << std::fixed << std::setw(6) << "Time" << "\t" <<
+                std::setw(16) << "Re (Urms)" << "\t" << "Nusselt No" << "\t" << "Divergence" << std::endl;
 
             ofFile << "#VARIABLES = Time, Energy, NusseltNo, Divergence, dt\n";
         }
@@ -135,7 +137,7 @@ tseries::tseries(const grid &mesh, vfield &solverV, const sfield &solverP, const
  ********************************************************************************************************************************************
  */
 void tseries::writeTSData() {
-    V.divergence(divV, P);
+    V.divergence(divV , P);
     maxDivergence = divV.fxMax();
 
     if (maxDivergence > 1.0e5) {
@@ -150,30 +152,30 @@ void tseries::writeTSData() {
     int iY = 0;
     for (int iX = xLow; iX <= xTop; iX++) {
         for (int iZ = zLow; iZ <= zTop; iZ++) {
-            localEnergy += (pow((V.Vx.F(iX-1, iY, iZ) + V.Vx.F(iX, iY, iZ))/2.0, 2.0) +
-                            pow((V.Vz.F(iX, iY, iZ-1) + V.Vz.F(iX, iY, iZ))/2.0, 2.0))*(mesh.dXi/mesh.xi_xColloc(iX))*(mesh.dZt/mesh.zt_zColloc(iZ));
+            localEnergy += (pow((V.Vx.F(iX - 1 , iY , iZ) + V.Vx.F(iX , iY , iZ)) / 2.0 , 2.0) +
+                pow((V.Vz.F(iX , iY , iZ - 1) + V.Vz.F(iX , iY , iZ)) / 2.0 , 2.0)) * (mesh.dXi / mesh.xi_xColloc(iX)) * (mesh.dZt / mesh.zt_zColloc(iZ));
         }
     }
 #else
     for (int iX = xLow; iX <= xTop; iX++) {
         for (int iY = yLow; iY <= yTop; iY++) {
             for (int iZ = zLow; iZ <= zTop; iZ++) {
-                localEnergy += (pow((V.Vx.F(iX-1, iY, iZ) + V.Vx.F(iX, iY, iZ))/2.0, 2.0) +
-                                pow((V.Vy.F(iX, iY-1, iZ) + V.Vy.F(iX, iY, iZ))/2.0, 2.0) +
-                                pow((V.Vz.F(iX, iY, iZ-1) + V.Vz.F(iX, iY, iZ))/2.0, 2.0))*(mesh.dXi/mesh.xi_xColloc(iX))*(mesh.dEt/mesh.et_yColloc(iY))*(mesh.dZt/mesh.zt_zColloc(iZ));
+                localEnergy += (pow((V.Vx.F(iX - 1 , iY , iZ) + V.Vx.F(iX , iY , iZ)) / 2.0 , 2.0) +
+                    pow((V.Vy.F(iX , iY - 1 , iZ) + V.Vy.F(iX , iY , iZ)) / 2.0 , 2.0) +
+                    pow((V.Vz.F(iX , iY , iZ - 1) + V.Vz.F(iX , iY , iZ)) / 2.0 , 2.0)) * (mesh.dXi / mesh.xi_xColloc(iX)) * (mesh.dEt / mesh.et_yColloc(iY)) * (mesh.dZt / mesh.zt_zColloc(iZ));
             }
         }
     }
 #endif
-    MPI_Allreduce(&localEnergy, &totalEnergy, 1, MPI_FP_REAL, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&localEnergy , &totalEnergy , 1 , MPI_FP_REAL , MPI_SUM , MPI_COMM_WORLD);
     totalEnergy /= totalVol;
 
     if (mesh.rankData.rank == 0) {
-        std::cout << std::fixed << std::setw(6)  << std::setprecision(4) << time << "\t" <<
-                                    std::setw(16) << std::setprecision(8) << totalEnergy << "\t" << maxDivergence << std::endl;
+        std::cout << std::fixed << std::setw(10) << std::setprecision(8) << time << "\t" <<
+            std::setw(30) << std::setprecision(12) << totalEnergy << "\t" << maxDivergence << std::endl;
 
-        ofFile << std::fixed << std::setw(6)  << std::setprecision(4) << time << "\t" <<
-                                std::setw(16) << std::setprecision(8) << totalEnergy << "\t" << maxDivergence << "\t" << tStp << std::endl;
+        ofFile << std::fixed << std::setw(10) << std::setprecision(8) << time << "\t" <<
+            std::setw(30) << std::setprecision(12) << totalEnergy << "\t" << maxDivergence << "\t" << tStp << std::endl;
     }
 }
 
@@ -192,9 +194,9 @@ void tseries::writeTSData() {
  *
  ********************************************************************************************************************************************
  */
-void tseries::writeTSData(const sfield &T, const real nu, const real kappa) {
+void tseries::writeTSData(const sfield& T , const real nu , const real kappa) {
     // COMPUTE ENERGY AND DIVERGENCE FOR THE INITIAL CONDITION
-    V.divergence(divV, P);
+    V.divergence(divV , P);
     maxDivergence = divV.fxMax();
 
     if (maxDivergence > 1.0e5) {
@@ -211,37 +213,37 @@ void tseries::writeTSData(const sfield &T, const real nu, const real kappa) {
     int iY = 0;
     for (int iX = xLow; iX <= xTop; iX++) {
         for (int iZ = zLow; iZ <= zTop; iZ++) {
-            localEnergy += (pow((V.Vx.F(iX-1, iY, iZ) + V.Vx.F(iX, iY, iZ))/2.0, 2.0) +
-                            pow((V.Vz.F(iX, iY, iZ-1) + V.Vz.F(iX, iY, iZ))/2.0, 2.0))*(mesh.dXi/mesh.xi_xColloc(iX))*(mesh.dZt/mesh.zt_zColloc(iZ));
+            localEnergy += (pow((V.Vx.F(iX - 1 , iY , iZ) + V.Vx.F(iX , iY , iZ)) / 2.0 , 2.0) +
+                pow((V.Vz.F(iX , iY , iZ - 1) + V.Vz.F(iX , iY , iZ)) / 2.0 , 2.0)) * (mesh.dXi / mesh.xi_xColloc(iX)) * (mesh.dZt / mesh.zt_zColloc(iZ));
 
-            localUzT += ((V.Vz.F(iX, iY, iZ) + V.Vz.F(iX, iY, iZ-1))/2.0)*T.F.F(iX, iY, iZ)*(mesh.dXi/mesh.xi_xColloc(iX))*(mesh.dZt/mesh.zt_zColloc(iZ));
+            localUzT += ((V.Vz.F(iX , iY , iZ) + V.Vz.F(iX , iY , iZ - 1)) / 2.0) * T.F.F(iX , iY , iZ) * (mesh.dXi / mesh.xi_xColloc(iX)) * (mesh.dZt / mesh.zt_zColloc(iZ));
         }
     }
 #else
     for (int iX = xLow; iX <= xTop; iX++) {
         for (int iY = yLow; iY <= yTop; iY++) {
             for (int iZ = zLow; iZ <= zTop; iZ++) {
-                localEnergy += (pow((V.Vx.F(iX-1, iY, iZ) + V.Vx.F(iX, iY, iZ))/2.0, 2.0) +
-                                pow((V.Vy.F(iX, iY-1, iZ) + V.Vy.F(iX, iY, iZ))/2.0, 2.0) +
-                                pow((V.Vz.F(iX, iY, iZ-1) + V.Vz.F(iX, iY, iZ))/2.0, 2.0))*(mesh.dXi/mesh.xi_xColloc(iX))*(mesh.dEt/mesh.et_yColloc(iY))*(mesh.dZt/mesh.zt_zColloc(iZ));
+                localEnergy += (pow((V.Vx.F(iX - 1 , iY , iZ) + V.Vx.F(iX , iY , iZ)) / 2.0 , 2.0) +
+                    pow((V.Vy.F(iX , iY - 1 , iZ) + V.Vy.F(iX , iY , iZ)) / 2.0 , 2.0) +
+                    pow((V.Vz.F(iX , iY , iZ - 1) + V.Vz.F(iX , iY , iZ)) / 2.0 , 2.0)) * (mesh.dXi / mesh.xi_xColloc(iX)) * (mesh.dEt / mesh.et_yColloc(iY)) * (mesh.dZt / mesh.zt_zColloc(iZ));
 
-                localUzT += ((V.Vz.F(iX, iY, iZ) + V.Vz.F(iX, iY, iZ-1))/2.0)*T.F.F(iX, iY, iZ)*(mesh.dXi/mesh.xi_xColloc(iX))*(mesh.dEt/mesh.et_yColloc(iY))*(mesh.dZt/mesh.zt_zColloc(iZ));
+                localUzT += ((V.Vz.F(iX , iY , iZ) + V.Vz.F(iX , iY , iZ - 1)) / 2.0) * T.F.F(iX , iY , iZ) * (mesh.dXi / mesh.xi_xColloc(iX)) * (mesh.dEt / mesh.et_yColloc(iY)) * (mesh.dZt / mesh.zt_zColloc(iZ));
             }
         }
     }
 #endif
 
-    MPI_Allreduce(&localEnergy, &totalEnergy, 1, MPI_FP_REAL, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(&localUzT, &totalUzT, 1, MPI_FP_REAL, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&localEnergy , &totalEnergy , 1 , MPI_FP_REAL , MPI_SUM , MPI_COMM_WORLD);
+    MPI_Allreduce(&localUzT , &totalUzT , 1 , MPI_FP_REAL , MPI_SUM , MPI_COMM_WORLD);
     totalEnergy /= totalVol;
-    NusseltNo = 1.0 + (totalUzT/totalVol)/kappa;
+    NusseltNo = 1.0 + (totalUzT / totalVol) / kappa;
 
     if (mesh.rankData.rank == 0) {
-        std::cout << std::fixed << std::setw(6)  << std::setprecision(4) << time << "\t" <<
-                                    std::setw(16) << std::setprecision(8) << sqrt(totalEnergy)/nu << "\t" << NusseltNo << "\t" << maxDivergence << std::endl;
+        std::cout << std::fixed << std::setw(6) << std::setprecision(4) << time << "\t" <<
+            std::setw(16) << std::setprecision(8) << sqrt(totalEnergy) / nu << "\t" << NusseltNo << "\t" << maxDivergence << std::endl;
 
-        ofFile << std::fixed << std::setw(6)  << std::setprecision(4) << time << "\t" <<
-                                std::setw(16) << std::setprecision(8) << sqrt(totalEnergy)/nu << "\t" << NusseltNo << "\t" << maxDivergence << "\t" << tStp << std::endl;
+        ofFile << std::fixed << std::setw(6) << std::setprecision(4) << time << "\t" <<
+            std::setw(16) << std::setprecision(8) << sqrt(totalEnergy) / nu << "\t" << NusseltNo << "\t" << maxDivergence << "\t" << tStp << std::endl;
     }
 }
 

@@ -1,0 +1,9 @@
+cmake \
+ -DCMAKE_CXX_COMPILER=mpicxx \
+ -DCMAKE_PREFIX_PATH=/opt/adios2 \
+ -DCMAKE_BUILD_TYPE=Debug \
+..
+
+# -DHDF5_DIR=/usr/lib/x86_64/hdf5/openmpi \
+
+ 
