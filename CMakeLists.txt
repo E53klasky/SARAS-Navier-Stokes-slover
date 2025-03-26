@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 #############################################################################################################################################
  # Saras
  # 
@@ -42,7 +40,7 @@
  ############################################################################################################################################
  ##
 
->>>>>>> origin/main
+
 # Cmake setup
 cmake_minimum_required (VERSION 3.19)
 project (saras)
@@ -64,14 +62,14 @@ if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
             "        $ cmake [OPTIONS] ..\n")
 endif ()
 
-<<<<<<< HEAD
+
 # Enable C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add ADIOS2 path to CMAKE_PREFIX_PATH
 set(CMAKE_PREFIX_PATH "/home/adios/local/adios-install")
-=======
+
 # Add this line before the rest of the configuration
 find_package(MPI REQUIRED)
 
@@ -79,8 +77,6 @@ find_package(MPI REQUIRED)
 # set(MPI_INCLUDE_DIR "/usr/lib/x86_64-linux-gnu/openmpi/include")
 # set(MPI_LIBRARY "/usr/lib/x86_64-linux-gnu/openmpi/lib")
 
-
->>>>>>> origin/main
 
 set (PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set (HEADER_DIR ${PARENT_DIR}/lib)

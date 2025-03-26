@@ -57,13 +57,8 @@
 #include "adios2.h"
 
 class writer {
-<<<<<<< HEAD
 public:
         writer(const grid& mesh , std::vector<field>& wFields , std::string outDir);
-=======
-    public:
-        writer(const grid &mesh, std::vector<field> &wFields, std::string outDir);
->>>>>>> origin/main
 
         // hard coding 2d for now
         void writeBP(real time);
@@ -73,7 +68,6 @@ public:
 
         ~writer();
 
-<<<<<<< HEAD
 private:
         int timestepCounter;
         std::string outputDir = "output";
@@ -84,11 +78,6 @@ private:
         adios2::IO bpIO;
         adios2::Variable<double> bpVx , bpVy , bpVz , bpP;
         std::vector<field>& wFields;
-=======
-    private:
-        std::string outputDir = "output";
-        const grid &mesh;
->>>>>>> origin/main
 
         std::vector<double> vx_vector;
         std::vector<double> vy_vector;
