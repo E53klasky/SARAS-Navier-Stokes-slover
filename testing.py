@@ -81,12 +81,6 @@ def main(input_dir):
 
                 # Read the 'P' variable
                 P = f['P'][:]
-<<<<<<< HEAD
-                
-=======
-
->>>>>>> origin/main
- 
                 plotStreamline(h5_file, input_dir)
                 # Determine the size of the variable
                 size = P.shape

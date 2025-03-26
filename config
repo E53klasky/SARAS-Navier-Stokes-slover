@@ -1,8 +1,8 @@
-<<<<<<< HEAD
+
 CC=mpicc CXX=mpicxx cmake -DPLANAR=ON ../
 
 #-DREAL_SINGLE=ON ../
-=======
+
 cmake \
  -DCMAKE_CXX_COMPILER=mpicxx \
  -DCMAKE_PREFIX_PATH=/opt/adios2 \
@@ -13,4 +13,3 @@ cmake \
 
 
  
->>>>>>> origin/main
