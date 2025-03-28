@@ -55,6 +55,7 @@ reader::reader(const grid& mesh , std::vector<field>& rFields)
     : mesh(mesh) , rFields(rFields) , timestepCounter(0) , isADIOSInitialized(false)
 {
     initLimits();
+    // adios2::ADIOS adios(MPI_COMM_WORLD);
     adios = new adios2::ADIOS(MPI_COMM_WORLD);
     bpIO = adios->DeclareIO("ReadBP");
 }
