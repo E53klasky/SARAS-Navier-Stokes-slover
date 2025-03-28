@@ -91,6 +91,7 @@ writer::writer(const grid& mesh , std::vector<field>& wFields , std::string outD
             static_cast<std::size_t>(localSize[i](2))
         };
 
+        // need to fix to make sure it is compatiable with 2d and 3d when set to planar it is 2d and 3d when not  
         // test ------------------------------------
         if (wFields[i].fieldName == "Vx") {
             if (mesh.rankData.xRank == mesh.rankData.npX - 1) {
@@ -99,7 +100,7 @@ writer::writer(const grid& mesh , std::vector<field>& wFields , std::string outD
             // std::cout << mesh.rankData.rank << ": Vx Count: " << count[0] << " " << count[1] << std::endl;
             bpVx = bpIO.DefineVariable<double>("Vx" , shape , start , count);
         }
-        else if () (wFields[i].fieldName == "Vy") {
+        else if (wFields[i].fieldName == "Vy") {
             if (mesh.rankData.yRank == mesh.rankData.npY - 1) {
                 count[1] += 1;
             }
@@ -187,12 +188,12 @@ void writer::initLimits() {
     blitz::TinyVector<int , 3> gloSize , sdStart , locSize;
 
     // this needs to be changed all just var type ----------------------------------------------------------------------
-#ifdef PLANAR
-    hsize_t dimsf[2];           /* dataset dimensions */
-    hsize_t offset[2];          /* offset of hyperslab */
+#ifdef PLANAR         /*  change from hsize_t -> size_t  */
+    size_t dimsf[2];           /* dataset dimensions */
+    size_t offset[2];          /* offset of hyperslab */
 #else
-    hsize_t dimsf[3];           /* dataset dimensions */
-    hsize_t offset[3];          /* offset of hyperslab */
+    size_t dimsf[3];           /* dataset dimensions */
+    size_t offset[3];          /* offset of hyperslab */
 #endif
 //  --------------------------------------------------------------------------
     for (unsigned int i = 0; i < wFields.size(); i++) {
@@ -270,15 +271,6 @@ void writer::initLimits() {
         offset[2] = 0;
 #endif
 
-        // status = H5Sselect_hyperslab(sDSpace , H5S_SELECT_SET , offset , NULL , dimsf , NULL);
-        // if (status) {
-        //     if (mesh.rankData.rank == 0) {
-        //         std::cout << "Error in creating hyperslab while writing data. Aborting" << std::endl;
-        //     }
-        //     MPI_Finalize();
-        //     exit(0);
-        // }
-
         // Create a dataspace representing the full limits of the global array - i.e. the dataspace for output file
 #ifdef PLANAR
         dimsf[0] = gloSize(0);
@@ -307,20 +299,6 @@ void writer::initLimits() {
         offset[1] = sdStart[1];
         offset[2] = sdStart[2];
 #endif
-
-        // if (wFields[i].fieldName == "P") {
-        //     std::cout << "Dimsf" << dimsf[0] << " " << dimsf[1] << std::endl;
-        // }
-
-        // status = H5Sselect_hyperslab(tDSpace , H5S_SELECT_SET , offset , NULL , dimsf , NULL);
-        // if (status) {
-        //     if (mesh.rankData.rank == 0) {
-        //         std::cout << "Error in creating hyperslab while writing data. Aborting" << std::endl;
-        //     }
-        //     MPI_Finalize();
-        //     exit(0);
-        // }
-
         // std::cout << "Local size: " << locSize << std::endl;    
         localSize.push_back(locSize);
       //  sourceDSpace.push_back(sDSpace);
@@ -355,140 +333,11 @@ void writer::outputCheck() {
     }
 }
 
-/**
- ********************************************************************************************************************************************
- * \brief   Function to write solution file in HDF5 format in parallel in the same manner as TARANG
- *
- *          TARANG writes solution files in folders within the output folder.
- *          This totally defeats the purpose of HDF5 data format and makes data processing more cumbersome.
- *          However, in the interest of maintaining backward compatibility, this feature is being added to Saras.
- *          Before writing the file, all the data is interpolated into the cell centers for ease of post-processing.
- *
- * \param   time is a real value containing the time to be used for naming the file
- ********************************************************************************************************************************************
- */
+// do not do this ---------------------------------------------------------
 void writer::writeTarang(real time) {
-    // hid_t plist_id;
-    // hid_t fileHandle;
-    // hid_t dataSet;
-
-    // herr_t status;
-
-    // std::ostringstream constFile;
-
-    // char* fieldStr;
-    // char* fileName;
-    // char* folderName;
-    // struct stat info;
-    // int createStatus;
-
-    // The last entry in wFields is P, which is cell centered. Hence the MPI-IO data-structures associated with this index is used for file writing
-    int pIndex = wFields.size() - 1;
-
-    // Generate the foldername corresponding to the time
-//     folderName = new char[100];
-//     constFile.str(std::string());
-//     constFile << this->outputDir << "/real_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time;
-//     strcpy(folderName , constFile.str().c_str());
-//     constFile << this->outputDir << "/real_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time;
-//     strcpy(folderName , constFile.str().c_str());
-
-//     if (mesh.rankData.rank == 0) {
-//         if (stat(folderName , &info) != 0) {
-//             createStatus = mkdir(folderName , S_IRWXU | S_IRWXG);
-
-//             // Raise error if the filesystem is read-only or something
-//             if (createStatus) {
-//                 std::cout << "Error in while attempting to create directory for writing solution. Aborting" << std::endl;
-//                 exit(0);
-//             }
-//         }
-//     }
-
-//     for (unsigned int i = 0; i < wFields.size(); i++) {
-//         // Below is a very dirty way to make the file names of hdf5 solution from SARAS to match those of TARANG.
-//         // Clearly, it is not neat. But then, the output of TARANG itself is not neat. So what is there to say?
-//         fieldStr = new char[100];
-//         constFile.str(std::string());
-
-//         // var names--------  
-//         if (!std::strcmp(wFields[i].fieldName.c_str() , "Vx")) constFile << "U.V1";
-//         else if (!std::strcmp(wFields[i].fieldName.c_str() , "Vy")) constFile << "U.V2";
-//         else if (!std::strcmp(wFields[i].fieldName.c_str() , "Vz")) constFile << "U.V3";
-//         else if (!std::strcmp(wFields[i].fieldName.c_str() , "P")) constFile << "P.F";
-//         else if (!std::strcmp(wFields[i].fieldName.c_str() , "T")) constFile << "T.F";
-//         strcpy(fieldStr , constFile.str().c_str());
-
-//         // Create a property list for collectively opening a file by all processors
-//         plist_id = H5Pcreate(H5P_FILE_ACCESS);
-//         H5Pset_fapl_mpio(plist_id , MPI_COMM_WORLD , MPI_INFO_NULL);
-
-//         // Generate the foldername corresponding to the time
-//         fileName = new char[100]; // doesn't matter 
-//         constFile.str(std::string());
-//         constFile << folderName << "/" << fieldStr << "r.h5";
-//         strcpy(fileName , constFile.str().c_str());
-
-//         // First create a file handle with the path to the output file
-//         fileHandle = H5Fcreate(fileName , H5F_ACC_TRUNC , H5P_DEFAULT , plist_id);
-
-//         // Close the property list for later reuse
-//         H5Pclose(plist_id);
-
-//         // Create a property list to use collective data write
-//         plist_id = H5Pcreate(H5P_DATASET_XFER);
-//         H5Pset_dxpl_mpio(plist_id , H5FD_MPIO_COLLECTIVE);
-
-// #ifdef PLANAR
-//         fieldData.resize(blitz::TinyVector<int , 2>(localSize[pIndex](0) , localSize[pIndex](2)));
-// #else
-//         fieldData.resize(localSize[pIndex]);
-// #endif
-
-//         //Write data after first interpolating them to cell centers
-//         interpolateData(wFields[i]);
-
-//         // Create the dataset *for the file*, linking it to the file handle.
-//         // Correspondingly, it will use the *core* dataspace, as only the core has to be written excluding the pads
-//         dataSet = H5Dcreate2(fileHandle , wFields[i].fieldName.c_str() , H5T_NATIVE_REAL , targetDSpace[pIndex] , H5P_DEFAULT , H5P_DEFAULT , H5P_DEFAULT);
-
-//         // Write the dataset. Most important thing to note is that the 3rd and 4th arguments represent the *source* and *destination* dataspaces.
-//         // The source here is the sourceDSpace pointing to the memory buffer. Note that its view has been adjusted using hyperslab.
-//         // The destination is the targetDSpace. Though the targetDSpace is smaller than the sourceDSpace,
-//         // only the appropriate hyperslab within the sourceDSpace is transferred to the destination.
-
-//         // -----------------------------HERE----------------11111111111111111111---------------------------
-//         status = H5Dwrite(dataSet , H5T_NATIVE_REAL , sourceDSpace[pIndex] , targetDSpace[pIndex] , plist_id , fieldData.dataFirst());
-//         if (status) {
-//             if (mesh.rankData.rank == 0) {
-//                 std::cout << "Error in writing output to HDF file. Aborting" << std::endl;
-//             }
-//             MPI_Finalize();
-//             exit(0);
-//         }
-
-        // CLOSE/RELEASE RESOURCES
-        // H5Dclose(dataSet);
-        // H5Pclose(plist_id);
-        // H5Fclose(fileHandle);
-
-    // delete fileName;
-    // delete fieldStr;
-
-
-    // delete folderName;
 }
 
-/**
- ********************************************************************************************************************************************
- * \brief   Function to write solution file in HDF5 format in parallel
- *
- *          It opens a file in the output folder and all the processors write in parallel into the file
- *          Before writing however, all the data is interpolated into the cell centers for ease of post-processing.
- *
- * \param   time is a real value containing the time to be used for naming the file
- ********************************************************************************************************************************************
- */
+// wrties it out 
 void writer::writeSolution(real time) {
     // hid_t plist_id;
     // hid_t fileHandle;
@@ -498,7 +347,6 @@ void writer::writeSolution(real time) {
 
 
     // The last entry in wFields is P, which is cell centered. Hence the MPI-IO data-structures associated with this index is used for file writing
-    int pIndex = wFields.size() - 1;
 
     // Create a property list for collectively opening a file by all processors
     // plist_id = H5Pcreate(H5P_FILE_ACCESS);
@@ -579,85 +427,8 @@ void writer::writeSolution(real time) {
 
 }
 
-/**
- ********************************************************************************************************************************************
- * \brief   Function to write restart file in HDF5 format in parallel
- *
- *          It opens the restart file in the output folder and all the processors write in parallel into the file.
- *          Unlike solution writing, the data is not interpolated and is written as is.
- *          The restart file is overwritten with each call to this function.
- *
- * \param   time is a real value containing the time to be added as metadata to the restart file
- ********************************************************************************************************************************************
- */
+// DO not do this ---------------------------------------------------------
 void writer::writeRestart(real time) {
-    // hid_t plist_id;
-    // hid_t fileHandle;
-    // hid_t dataSet;
-
-    // herr_t status;
-
-    // Create a property list for collectively opening a file by all processors
-//     plist_id = H5Pcreate(H5P_FILE_ACCESS);
-//     H5Pset_fapl_mpio(plist_id , MPI_COMM_WORLD , MPI_INFO_NULL);
-
-//     // First create a file handle with the path to the output file
-//     std::string _fname = this->outputDir + "/restartFile.h5";
-//     fileHandle = H5Fcreate(_fname.c_str() , H5F_ACC_TRUNC , H5P_DEFAULT , plist_id);
-
-//     // Close the property list for later reuse
-//     H5Pclose(plist_id);
-
-//     // Add the scalar value of time to the restart file
-//     hid_t timeDSpace = H5Screate(H5S_SCALAR);
-//     dataSet = H5Dcreate2(fileHandle , "Time" , H5T_NATIVE_REAL , timeDSpace , H5P_DEFAULT , H5P_DEFAULT , H5P_DEFAULT);
-//       // -----------------------------HERE----------------11111111111111111111---------------------------
-//     status = H5Dwrite(dataSet , H5T_NATIVE_REAL , timeDSpace , timeDSpace , H5P_DEFAULT , &time);
-
-//     // Close dataset for future use and dataspace for clearing resources
-//     H5Dclose(dataSet);
-//     H5Sclose(timeDSpace);
-
-//     // Create a property list to use collective data write
-//     plist_id = H5Pcreate(H5P_DATASET_XFER);
-//     H5Pset_dxpl_mpio(plist_id , H5FD_MPIO_COLLECTIVE);
-
-//     for (unsigned int i = 0; i < wFields.size(); i++) {
-// #ifdef PLANAR
-//         fieldData.resize(blitz::TinyVector<int , 2>(localSize[i](0) , localSize[i](2)));
-// #else
-//         fieldData.resize(localSize[i]);
-// #endif
-
-//         //Write data
-//         copyData(wFields[i]);
-
-//         // Create the dataset *for the file*, linking it to the file handle.
-//         // Correspondingly, it will use the *core* dataspace, as only the core has to be written excluding the pads
-//         dataSet = H5Dcreate2(fileHandle , wFields[i].fieldName.c_str() , H5T_NATIVE_REAL , targetDSpace[i] , H5P_DEFAULT , H5P_DEFAULT , H5P_DEFAULT);
-
-//         // Write the dataset. Most important thing to note is that the 3rd and 4th arguments represent the *source* and *destination* dataspaces.
-//         // The source here is the sourceDSpace pointing to the memory buffer. Note that its view has been adjusted using hyperslab.
-//         // The destination is the targetDSpace. Though the targetDSpace is smaller than the sourceDSpace,
-//         // only the appropriate hyperslab within the sourceDSpace is transferred to the destination.
-
-//           // -----------------------------HERE----------------11111111111111111111---------------------------
-//         status = H5Dwrite(dataSet , H5T_NATIVE_REAL , sourceDSpace[i] , targetDSpace[i] , plist_id , fieldData.dataFirst());
-//         if (status) {
-//             if (mesh.rankData.rank == 0) {
-//                 std::cout << "Error in writing output to HDF file. Aborting" << std::endl;
-//             }
-//             MPI_Finalize();
-//             exit(0);
-//         }
-
-//         // Close dataset for reuse
-//         H5Dclose(dataSet);
-//     }
-
-//     // CLOSE/RELEASE RESOURCES
-//     H5Pclose(plist_id);
-//     H5Fclose(fileHandle);
 }
 
 /**
@@ -702,9 +473,9 @@ void writer::interpolateData(field& outField) {
 
 #ifdef PLANAR
     if (mesh.rankData.rank == 0) {
-        std::cout << "Interpolating " << outField.fieldName
-            << " xStag=" << outField.xStag
-            << " zStag=" << outField.zStag << std::endl;
+        // std::cout << "Interpolating " << outField.fieldName
+        //     << " xStag=" << outField.xStag
+        //     << " zStag=" << outField.zStag << std::endl;
     }
 
     if (not outField.xStag) {
