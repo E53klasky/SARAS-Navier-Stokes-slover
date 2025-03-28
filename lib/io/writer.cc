@@ -505,10 +505,10 @@ void writer::writeSolution(real time) {
 
     constFile << this->outputDir << "/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
     strcpy(fileName , constFile.str().c_str());
-    ====== =
+    
         constFile << this->outputDir << "/Soln_" << std::fixed << std::setfill('0') << std::setw(9) << std::setprecision(4) << time << ".h5";
     strcpy(fileName , constFile.str().c_str());
-    >>>>>> > origin / main
+    
 
         // First create a file handle with the path to the output file
         fileHandle = H5Fcreate(fileName , H5F_ACC_TRUNC , H5P_DEFAULT , plist_id);
