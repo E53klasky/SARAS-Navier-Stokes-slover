@@ -1,5 +1,10 @@
 THERE SEEMS TO BE A PROBLEM WHEN TRYING TO INSTALL SOME OF THE SOFTWARE ON MAC OS sometimes
+
+DO NOT RESTART THE WRIGHTING OUT IT I HAVE NOT TESTED IT AND THERE IS A GOOD CHANCE IT WILL HAVE AN ERROR.
+
+
 LINUX UBUNTU SEEMS TO WORK FINE. I DO NOT KNOW ABOUT WINDOWS
+
 strange but works try the test for some reason that works. Also need to install adios2 and put your path to it in the cmakelist.txt file: https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html
 
 # Saras - Finite difference solver
