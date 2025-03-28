@@ -53,7 +53,7 @@
 
 #include "field.h"
 #include "grid.h"
-#include "hdf5.h"
+// #include "hdf5.h"
 #include "adios2.h"
 
 class writer {
@@ -90,7 +90,7 @@ private:
         blitz::Array<real , 3> fieldData;
 #endif
 
-        std::vector<hid_t> sourceDSpace , targetDSpace;
+        // std::vector<hid_t> sourceDSpace , targetDSpace;
 
         std::vector< blitz::TinyVector<int , 3> > localSize;
 
