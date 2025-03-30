@@ -58,4 +58,4 @@ set (SOURCES main.cc ${UNIT_SOURCE} ${HYDRO_SOURCE} ${TEST_SOURCE})
 
 add_executable(saras_test ${SOURCES})
 
-target_link_libraries(saras_test field grid parser probes reader writer parallel poisson yaml-cpp hdf5  /usr/local/lib/libblitz.a)
+target_link_libraries(saras_test field grid parser probes reader writer parallel poisson yaml-cpp hdf5 /usr/local/lib/libblitz.a)

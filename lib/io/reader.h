@@ -62,7 +62,7 @@ private:
         const grid& mesh;
         int timestepCounter;
         std::string outputDir = "output";
-        adios2::Engine bpWriter;
+        adios2::Engine bpreader;
         bool isADIOSInitialized;
         adios2::ADIOS* adios;
         adios2::IO bpIO;
