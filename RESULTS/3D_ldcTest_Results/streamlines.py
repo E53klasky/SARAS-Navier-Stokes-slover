@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
-directory = "./128"
+directory = "./64"
 file_pattern = "Soln_{:04d}.0000.h5"  
 
 def read_hdf5_velocity(file_path):
