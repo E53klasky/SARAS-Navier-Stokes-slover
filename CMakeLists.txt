@@ -130,7 +130,7 @@ endif ()
 # Compiler flags with MPI flags included
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS} -Wall -Ofast -fno-omit-frame-pointer")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -g -DBZ_DEBUG")
+
 
 # Rest of your configuration flags
 if (PLANAR)

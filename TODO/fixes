@@ -1,3 +1,0 @@
-I am taking out all of hdf5 and replacing it with adios2
-
-I CMAKE only reads in release or debug based off how you build it
