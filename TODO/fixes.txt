@@ -1,0 +1,7 @@
+TIME TO SEE IF TEST THE CODE
+
+and then we can check to see if i need to to any other optimzations such as adding more threads or gpu or switing out blitz++
+
+ I am adding cuda to try and speed it up
+~                                                                                                                                                                                                                ~                                                                                                           :wq
+
